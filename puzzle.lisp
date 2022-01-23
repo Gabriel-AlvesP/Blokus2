@@ -1,75 +1,16 @@
 ;;;; Puzzle.lisp
-;;;; Codigo relacionado com o problema
+;;;; Codigo relacionado com o problema e operadores
 ;;;; Gabriel Pais - 201900301
 ;;;; Andre Serrado - 201900318
 
+;;; Board 
+;; [0] empty element/cell
+;; [1] player one piece
+;; [2] player two piece
 
-
-;;; Problems + Board
-
-;; Problem A
-;; At least 8 elements fulfilled
-(defun board-a()
-    ;A B C D E F G H I J K L M N
-  '((0 0 0 0 2 2 2 2 2 2 2 2 2 2)
-    (0 0 0 0 2 2 2 2 2 2 2 2 2 2)
-    (0 0 0 0 2 2 2 2 2 2 2 2 2 2)
-    (0 0 0 0 2 2 2 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2))
-)
-
-;; Problem b
-;; At least 20 elements fulfilled
-(defun board-b()
-    ;A B C D E F G H I J K L M N
-  '((0 0 0 0 0 0 0 2 2 2 2 2 2 2)
-    (0 0 0 0 0 0 0 2 2 2 2 2 2 2)
-    (0 0 0 0 0 0 0 2 2 2 2 2 2 2)
-    (0 0 0 0 0 0 0 2 2 2 2 2 2 2)
-    (0 0 0 0 0 0 0 2 2 2 2 2 2 2)
-    (0 0 0 0 0 0 0 2 2 2 2 2 2 2)
-    (0 0 0 0 0 0 0 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2)
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2))
-)
-
-;; Problem c
-;; At least 28 elements fulfilled
-(defun board-c()
-    ;A B C D E F G H I J K L M N
-  '((0 0 2 0 0 0 0 0 0 2 2 2 2 2) ;1
-    (0 0 0 2 0 0 0 0 0 2 2 2 2 2) ;2
-    (0 0 0 0 2 0 0 0 0 2 2 2 2 2) ;3
-    (0 0 0 0 0 2 0 0 0 2 2 2 2 2) ;4
-    (0 0 0 0 0 0 2 0 0 2 2 2 2 2) ;5
-    (0 0 0 0 0 0 0 2 0 2 2 2 2 2) ;6
-    (0 0 0 0 0 0 0 0 2 2 2 2 2 2) ;7
-    (0 0 0 0 0 0 0 0 0 2 2 2 2 2) ;8
-    (0 0 0 0 0 0 0 0 0 2 2 2 2 2) ;9
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2) ;10
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2) ;11
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2) ;12
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2) ;13
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2));14
-)
-
-;; Problem d
-;; At least 36 elements fulfilled
-(defun board-d()
+;;! TESTE
+;;TODO DELETE
+(defun board-t()
     ;A B C D E F G H I J K L M N
   '((0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;1
     (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;2
@@ -78,59 +19,39 @@
     (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;5
     (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;6
     (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;7
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2) ;8
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2) ;9
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2) ;10
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2) ;11
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2) ;12
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2) ;13
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2));14
+    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;8
+    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;9
+    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;10
+    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;11
+    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;12
+    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;13
+    (0 0 0 0 0 0 0 0 0 0 0 0 0 0));14
 )
 
-;; Problem e
-;; At least 44 elements fulfilled
-(defun board-e()
-    ;A B C D E F G H I J K L M N
-  '((0 2 2 2 2 2 2 2 2 2 2 2 2 2) ;1
-    (2 0 2 0 0 0 0 0 0 2 0 0 0 2) ;2
-    (2 0 0 2 0 0 0 0 0 0 2 0 0 2) ;3
-    (2 0 0 0 2 0 0 0 0 0 0 2 0 2) ;4
-    (2 0 0 0 0 2 0 0 0 0 0 0 2 2) ;5
-    (2 0 0 0 0 0 2 0 0 0 0 0 0 2) ;6
-    (2 0 0 0 0 0 0 2 0 0 0 0 0 2) ;7
-    (2 0 0 0 0 0 0 0 2 0 0 0 0 2) ;8
-    (2 0 0 0 0 0 0 0 0 2 0 0 0 2) ;9
-    (2 0 2 0 0 0 0 0 0 0 2 0 0 2) ;10
-    (2 2 0 0 0 0 0 0 0 0 0 2 0 2) ;11
-    (2 0 0 0 2 0 0 0 0 0 0 0 2 2) ;12
-    (2 0 0 0 0 2 0 0 0 0 0 0 0 2) ;13
-    (2 2 2 2 2 2 2 2 2 2 2 2 2 2));14
-)
-
-;; Problem f
+;; Problem
 ;; At least 72 elements fulfilled
 ;; Empty Board 14x14 
-;  Returns a 14x14 empty board 
+;;  Returns a 14x14 empty board 
 (defun empty-board (&optional (dimension 14))
 	(make-list dimension :initial-element (make-list dimension :initial-element '0))
 )
 
 ;; row
-;  returns a particular row based on an index
+;;  returns a particular row based on an index
 (defun row(index board)
   "[index] must be a number between 0 and the board dimension"
   (nth index board)
 )
 
 ;; column 
-;  returns a particular column based on an index
+;;  returns a particular column based on an index
 (defun column(index board)
   "[index] must be a number between 0 and the board dimension"
   (mapcar (lambda (x) (nth index x))  board) 
 )
 
 ;; element
-;  returns a particular element based on row (r) and column (col) indexes
+;;  returns a particular element based on row (r) and column (col) indexes
 (defun element(r col board)
     "[r] and [col] must be numbers between 0 and the board dimension"
   (nth col (row r board))
@@ -141,8 +62,8 @@
 
 ;; Cells/elements verification
 
-;  empty-elemp
-;  returns t if a board element is empty(or the value - val) and nil if it isn't
+;;  empty-elemp
+;;  returns t if a board element is empty(or has the value - val) and nil if it isn't
 (defun empty-elemp(row col board &optional (val 0)) 
   "[row] and [col] must be numbers between 0 and the board dimension"
   (cond 
@@ -152,10 +73,10 @@
   )
 )
 
-; check-empty-elems
-; checks if each element of indexes-list is empty or not in the board
-; indexes-list - ex -  ((0 0) (0 2) (4 2))
-; returns a list of t and nil depending on each index  
+;; check-empty-elems
+;; checks if each element of indexes-list is empty or not in the board
+;; indexes-list - ((0 0) (0 2) (4 2))
+;; returns a list of t and nil depending on each index  
 (defun check-empty-elems(board indexes-list &optional (val 0)) 
   "Each element(list with row and col) in indexes-list
    must contain a valid number for the row and column < (length board)"
@@ -164,11 +85,10 @@
 
 
 ;; replace-pos + replace- + replace-multi-pos
+
 ;; replace position in the board
-
-
-;  replaces a position in the board for val
-;  returns a row(list) with element in column(col) position replaced by the val
+;;  replaces a position in the board for val
+;;  returns a row(list) with element in column(col) position replaced by the val
 (defun replace-pos (col row &optional (val 1)) 
     "[Col] (column) must be a number between 0 and the row length"
     (cond 
@@ -178,8 +98,8 @@
     )
 )
 
-;  replaces an element in the board  
-;  returns the all board with element replaced by the value
+;;  replaces an element in the board  
+;;  returns the all board with element replaced by the value
 (defun replace- (row col board &optional (val 1)) 
   "[Row] and [column] must be a number between 0 and the board length"
   (cond  
@@ -199,6 +119,141 @@
     )
 )
 
+
+;; remove-nil 
+;;  remove all 'nil elements in a list
+(defun remove-nil(list)
+   (apply #'append (mapcar #'(lambda(x) (if (null x) nil (list x))) list))
+)
+
+;;  check-adjacent-elems
+;;  check if adjacente elements/cells are taken (1, 2 or +)
+;;  if, in fact, they are taken then returns null
+;;  else 
+(defun check-adjacent-elems (row col board piece)
+  (cond
+   ((eval (cons 'or (check-empty-elems board (piece-adjacent-elems row col piece) 1))) nil)
+   (t t)
+   )
+)
+
+
+;; check-corner
+;; checks if a list has the pretended corner coordenates 
+;; returns null if is emmpty, otherwise returns true
+(defun check-corner (piece-format &optional (corner 0))
+  (let ((list-index (car piece-format)))
+    (cond 
+      ((null piece-format) nil)
+      ((= corner (first list-index) (second list-index)) 0)
+      (t (check-corner (cdr piece-format) corner))
+    )
+  )
+)
+
+;; force-move
+;; This functions filters possible plays
+;; if the first board's corner is empty, only allows pieces at the first corner of the board 
+;; If the first board's corner is not empty, only allows moves that place pieces in touch with others (corner touch only)  
+;; In sum, filters possible plays
+;; returns t if the move is allow in that board and nil if it is not
+(defun force-move (row col board piece &optional (corner2check 0) (pieces-val 1)) 
+"
+[corner2check] player1 = 0 || player2 = 13
+[pieces-val]   player1 = 1 || player2 = 2   
+"
+  (let ((corner-index (check-corner (piece-taken-elems row col piece) corner2check)) ; [corner-index] 0 if player's trying to put a piece in his corner || nil if he is not
+        (corner-state (element corner2check corner2check board))                     ; [corner-state] 0 if the player corner is empty || 1 or 2 if it already has a piece 
+       )
+   (cond 
+    ((and (= corner-state  0) (null corner-index)) nil)
+    ((and (= corner-state 0 corner-index)) t)
+    ((eval (cons 'or (check-empty-elems board (piece-corners-elems row col piece) pieces-val))) t)
+    (t nil)
+   ) 
+  )
+)
+
+;; filter-player-move 
+;; This function receives the player and with that
+;; filters where he must play 
+;; player1 = 1, top left corner, pieces-val = 1
+;; player 2 = -1, bottom right corner, pieces-val = 2
+;; returns force-move function value (t - allow move || nil - it doesn't allow move)
+(defun filter-player-move (player row col board piece)
+"
+[player] player1 = 1 || player2 = -1
+"
+  (cond 
+    ((equal player 1) (force-move row col board piece))
+    ((equal player -1) (force-move row col board piece 13 2))
+    (t nil)
+  )
+)
+
+;; can-place-piecep
+;; test => (can-placep (list 1 0 0) (empty-board) 0 0  'piece-a 1)
+;; result => T
+(defun can-placep (pieces-list board row col piece player)
+"
+[player] player1 = 1 || player2 = -1
+"
+  (cond 
+    ((= 0 (pieces-left-numb pieces-list piece)) nil)
+    ((or (> row (length board)) (< row 0) (< col 0) (> col (length board))) nil)
+    ((not (filter-player-move player row col board piece)) nil)
+    ((not (check-adjacent-elems row col board piece)) nil)
+    ((eval (cons 'and (check-empty-elems board (piece-taken-elems row col piece))))t)
+    (t nil)
+  )
+)
+
+;; get-possible-indexes
+;; reduces the possible moves from all board to only the corner of placed pieces by one player
+;; returns a list with the corners indexes of placed pieces, from all player past moves
+;; test => (get-possible-indexes (list (list 'piece-a '(0 0)) (list 'piece-b '(1 1))))
+;; ((-1 -1) (1 -1) (-1 1) (1 1) (0 0) (3 0) (0 3) (3 3))
+(defun get-possible-indexes (player-moves &aux (first-elem (car player-moves))  (indexes (second first-elem))) 
+"
+[player-moves] (('piece-b (0 0)) ('piece-b (3 3)))) => (player (list (list piece (list row col)) (list piece (list row col)) )
+"
+  (cond 
+    ((null player-moves) nil)
+    (t (append (piece-corners-elems (car indexes) (second indexes) (car first-elem)) (get-possible-indexes (cdr player-moves))))
+  )
+)
+
+;; filter-possible-moves 
+;; checks where can a piece be placed in the board from a list of indexes
+;; returns a list with all possible moves based on all indexes given 
+;; (filter-possible-moves '(1 1 1) 'piece-a (board-t) (list '(1 1) '(0 0) '(12 12) '(13 13)) -1
+;; ((13 13))
+(defun filter-possible-moves(pieces-list piece board indexes-list player)
+  (remove-nil(mapcar (lambda (index) (cond ((can-placep pieces-list board (first index) (second index) piece player) index) (t nil))) indexes-list))
+)
+
+;; possible-moves
+;; returns a list with indexes for all possible moves with a piece (filtered)
+;; test (board was adapted with the pieces used in the test)
+;; (possible-moves (list 1 (list (list 'piece-a '(0 0)) (list 'piece-b '(1 1)))) '(1 1 1) 'piece-a (board-t)) 
+;; ((3 0) (0 3) (3 3))
+;;  (possible-moves (list 1 nil) '(1 1 1) 'piece-a (board-t))
+;; ((0 0))
+(defun possible-moves(player-node pieces-list piece board)
+"
+[player-node] (1 (('piece-b (0 0)) ('piece-b (3 3)))) => (player (list (list piece (list row col)) (list piece (list row col)) ))
+"
+  (let ((possible-indexes (get-possible-indexes (second player-node))))
+    (cond 
+      ((null possible-indexes) (filter-possible-moves pieces-list piece board (list '(0 0) '(13 13) '(11 12) '(12 12)) (car player-node)))
+      (t(filter-possible-moves pieces-list piece board possible-indexes (car player-node)))
+    )
+  )
+)
+
+; --------------------------------- ;
+;;; Pieces
+
 ;; piece-taken-elems 
 ;; returns a list with all elements/cells that a particular piece takes in a board
 (defun piece-taken-elems (row col piece) 
@@ -215,27 +270,6 @@
    )
 )
 
-
-;; remove-nil 
-;;  remove all 'nil elements in a list
-(defun remove-nil(list)
-   (apply #'append (mapcar #'(lambda(x) (if (null x) nil (list x))) list))
-)
-
-
-;;;  Board Verifications
-
-;;  check-adjacent-elems
-;;  check if adjacente elements/cells are taken (1, 2 or +)
-;;  if, in fact, they are taken then returns null
-;;  else 
-(defun check-adjacent-elems (row col board piece)
-  (cond
-   ((eval (cons 'or (check-empty-elems board (piece-adjacent-elems row col piece) 1))) nil)
-   (t t)
-   )
-)
-
 ;; piece-adjacent-elems
 ;; returns a list with all adjacent elements/cells that a particular  piece takes in a board
 (defun piece-adjacent-elems (row col piece)
@@ -247,31 +281,6 @@
    ((equal piece 'piece-c-2) (list (list (1- row) col) (list row (1- col)) (list row (1+ col)) (list (1+ row) (1- col)) (list (1+ row) (+ col 2)) (list (+ row 2) col) (list (+ row 2) (+ col 2)) (list (+ row 3) (1+ col))))
    (t nil)
    )
-)
-
-;; check-first-cell
-;; check if first cell is empty
-;; returns null if is emmpty, otherwise returns true
-(defun check-first-cell (row col board)
-  (cond
-   ((= (element 0 0 board) row col 0) t)
-   (t nil)
-   )
-)
-
-;; force-move
-;; This functions filters possible plays
-;; if the first board's corner is empty, only allows pieces at the first corner of the board 
-;; If the first board's corner is not empty, only allows moves that place pieces in touch with others (corner touch only)  
-;; In sum, filters possible plays
-;; returns t if the move is allow in that board and nil if it is not
-(defun force-move (row col board piece) 
-  (cond 
-    ((and (= (element 0 0 board) 0) (or (/= row 0) (/= col 0))) nil)
-    ((= (element 0 0 board) row col 0) t)
-    ((eval (cons 'or (check-empty-elems board (piece-corners-elems row col piece) 1))) t)
-    (t nil)
-  )
 )
 
 ;; piece-corners-elems
@@ -289,41 +298,15 @@
    )
 )
 
-;; can-place-piecep
-;; test => (can-placep (list 0 0 0) (empty-board) 0 0  'piece-a)
-;; result => nil
-(defun can-placep (pieces-list board row col piece)
-  (cond 
-    ((= 0 (pieces-left-numb pieces-list piece)) nil)
-    ((or (> row (length board)) (< row 0) (< col 0) (> col (length board))) nil)
-    ((not (force-move row col board piece)) nil)
-    ((not (check-adjacent-elems row col board piece)) nil)
-    ((eval (cons 'and (check-empty-elems board (piece-taken-elems row col piece))))t)
-    (t nil)
-  )
-)
-
-;; check-all-board
-;; returns a list with all indexes in the board
-(defun check-all-board(board row col)
-  (cond 
-    ((< row 0) nil)
-    ((< col 0) (check-all-board board (1- row) (1- (length board))))
-    (t (cons (list row col) (check-all-board board row (1- col))))
-  )
-)
-
-
-; ---------------------------------
-
-;;; Pieces
-
 ;; insert-piece
 ;; uses the piece-taken-elems to push pieces into the board
 ;; test => (insert-piece (init-pieces) 13 13 (empty-board) 'piece-a)
-(defun insert-piece (pieces-list row col board piece) 
+(defun insert-piece (pieces-list row col board piece &optional (player 1)) 
+"
+[player] player1 = 1 || player2 = -1
+"
   (cond 
-    ((null (can-placep pieces-list board row col piece)) nil)
+    ((null (can-placep pieces-list board row col piece player)) nil)
     (t (replace-multi-pos (piece-taken-elems row col piece) board)))
 )
 
@@ -352,21 +335,7 @@
   )
 )
 
-;; all-spaces 
-;; checks where can a piece be placed in the board from a list of indexes
-;; returns a list with all possible moves based on all indexes given 
-(defun all-spaces(pieces-list piece board indexes-list)
-  (remove-nil(mapcar (lambda (index) (cond ((can-placep pieces-list board (first index) (second index) piece) index) (t nil))) indexes-list))
-)
 
-;; possible moves 
-;; checks where can a piece can be placed in the board from all positions in the board
-;; returns a list with indexes for all moves possible with a piece (sorted - up/down)
-;; test => (possible-moves '(1 1 1) 'piece-a (board-a))
-;; restult => ((0 0) (0 1) (0 2) (0 3) (1 0) (1 1) (1 2) (1 3) (2 0) (2 1) (2 2) (2 3) (3 0) (3 1) (3 2) (3 3))
-(defun possible-moves(pieces-list piece board)
-  (reverse (all-spaces pieces-list piece board (check-all-board board (1- (length board)) (1- (length (car board))))))
-)
 
 ; --------------------------------- ;
 
@@ -387,21 +356,52 @@
 ;; piece-a
 ;; board = (node-state node)
 ;; returns board with the pieces placed or nil if fails 
-(defun piece-a (pieces-list index board)
-  (insert-piece pieces-list (first index) (second index) board 'piece-a)
+(defun piece-a (pieces-list index board player)
+  (insert-piece pieces-list (first index) (second index) board 'piece-a player)
 )
 
 ;; piece-b
-(defun piece-b (pieces-list index board)
-   (insert-piece pieces-list (first index) (second index) board 'piece-b)
+(defun piece-b (pieces-list index board player)
+   (insert-piece pieces-list (first index) (second index) board 'piece-b player)
 )
 
 ;; piece-c-1
-(defun piece-c-1 (pieces-list index board)
-  (insert-piece pieces-list (first index) (second index) board 'piece-c-1)
+(defun piece-c-1 (pieces-list index board player) 
+  (insert-piece pieces-list (first index) (second index) board 'piece-c-1 player)
 )
 
 ;; piece-c-2
-(defun piece-c-2 (pieces-list index board)
-  (insert-piece pieces-list (first index) (second index) board 'piece-c-2)
+(defun piece-c-2 (pieces-list index board player)
+  (insert-piece pieces-list (first index) (second index) board 'piece-c-2 player)
 )
+
+; --------------------------------- ;
+;;; Endgame Handling
+
+(defun count-points (pieces-list)
+  (+ (first pieces-list) (* (second pieces-list) 4) (* (third pieces-list) 4))
+)
+
+
+;!===================================deprecated================================================= 
+#|
+;; possible moves 
+;; checks where can a piece be placed in the board from all positions in the board
+;; returns a list with indexes for all moves possible with a piece (sorted - up/down)
+;; test => (possible-moves '(1 1 1) 'piece-a (board-a))
+;; restult => ((0 0) (0 1) (0 2) (0 3) (1 0) (1 1) (1 2) (1 3) (2 0) (2 1) (2 2) (2 3) (3 0) (3 1) (3 2) (3 3))
+(defun possible-moves(pieces-list piece board player)
+  (reverse (filter-possible-moves pieces-list piece board (check-all-board board (1- (length board)) (1- (length (car board)))) player))
+)
+
+;; check-all-board
+;; returns a list with all indexes in the board
+(defun check-all-board(board row col)
+  (cond 
+    ((< row 0) nil)
+    ((< col 0) (check-all-board board (1- row) (1- (length board))))
+    (t (cons (list row col) (check-all-board board row (1- col))))
+  )
+)
+|#
+;!===================================deprecated================================================= 

@@ -1,2 +1,3 @@
-# Blokus2
- Blokus 1v1 
+# Blokus Duo
+
+Blokus 1v1
