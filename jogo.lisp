@@ -119,7 +119,7 @@
 )
 
 ;; TODO
-;;O programa devera escrever num ficheiro log.dat : 
+;; Ficheiro log.dat : 
 ; - qual a jogada realizada
 ; - o valor da posicao para onde jogou
 ; - o numero de nos analisados
