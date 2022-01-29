@@ -7,27 +7,32 @@
 ;;; Memoization
 
 (let ((tab (make-hash-table)))
-		(defun fib-memo (n)
-			(or 
-				(gethash n tab) 
-				(let ((val (funcall #'FUNC n))) (setf (gethash n tab) val) val)
-			)
-		)
+  (defun fib-memo (n)
+    (or (gethash n tab) (let ((val (funcall #'FUNC n))) (setf (gethash n tab) val) val))
+  )
 )
 
 
 ; ---------------------------------------- ;
 ;;; Abstract Data Types
 
-;; play-info 
-;;TODO test
-(defun play-info(piece row col)
-	(list piece '(row col))
-)
+
 ;; play-nodess
 ;; (list jogador (list '('peca (row col)) '('peca2 (row2 col2))))
-(defun player-node(&optional (player 1) (play-info nil) (pieces-list (init-pieces)))
-	(list player play-info pieces-list)
+;; moves = (list (list 'peca (row col)) (list 'peca2 (row2 col2)))
+;; test ->  (player-info 1 (append (move-info 'piece-b '(1 2)) (move-info 'piece-a '(0 0))))
+;; return -> (1 ((PIECE-B (1 2)) (PIECE-A (0 0))) (10 10 15))
+(defun player-info(&optional (color 1) (moves nil) (pieces-list (init-pieces)))
+	(list color moves pieces-list)
+)
+
+;; play-info 
+(defun move-info(piece move)
+"
+[piece] operation 
+[move] list with row and col
+"
+(list (list piece move))
 )
 
 ;; make-node
@@ -35,7 +40,7 @@
 ;;  uses the function 'init-pieces' (puzzle/game dependent) to define the pieces list
 ;;  returns a list with all data
 ;;  test => (make-node (empty-board))
-(defun make-node(state &optional (parent nil) (p1-node (player-node)) (p2-node (player-node -1)) (f 0))
+(defun make-node(state &optional (parent nil) (p1-node (player-info)) (p2-node (player-info -1)) (f -500))
   (list state parent f p1-node p2-node)
 )
 
@@ -48,59 +53,59 @@
 
 ;; node-parent 
 ;; returns a parent node of other node 
-;; test => (node-parent (make-node (empty-board) (board-d)))
+;; test => (node-parent (make-node (empty-board) (board-t)))
 (defun node-parent(node)
   (second node)
 )
 
+;; node-value
 (defun node-value(node)
 	(third node)
 )
 
+;; players sub-node (list color (list '('piece (row col))  '('piece (row col))) '(10 10 15))
+;; color 1 || -1
+
+;; node-p1
+;; player 1 node 
+;; test
+;; (node-p1 (make-node (empty-board)))
+;; (1 NIL (10 10 15))
 (defun node-p1 (node)
 	(fourth node)
 )
 
+;;;; node-p1
+;; player 2 node 
+;; test
+;; (node-p2 (make-node (empty-board)))
+;; (-1 NIL (10 10 15))
 (defun node-p2 (node)
-	(nth (- (lenght node) 1) node)
+  (nth (1- (length node)) node)
 )
 
-(defun pieces-list(node player)
+;; player-moves
+;; all moves made by one player
+(defun player-moves(node color)
 	(cond 
-		((= 1 player) (third (node-p1 node)))
-		(t (third (node-p2 node)))
-	)
-)
-
-(defun player-moves(node player)
-	(cond 
-		((= 1 player) (second (node-p1 node)))
+		((= 1 color) (second (node-p1 node)))
 		(t (second (node-p2 node)))
 	)
 )
 
- 
+;; pieces-list
+;; player's pieces left list
+(defun pieces-list(node color)
+	(cond 
+		((= 1 color) (third (node-p1 node)))
+		(t (third (node-p2 node)))
+	)
+)
+
+
 ; ---------------------------------------- ;
 ;;;  Negamax com cortes alfa-beta (slightly faster)
 
-;!=====================================================================
-#| 
-;;; argumentos: nó n, profundidade d, cor c
-;;; b = ramificação (número de sucessores)
-function negamax (n, d, α, β, c)
-se d = 0 ou n é terminal
-return c * valor heuristico de n
-sucessores := OrderMoves(GenerateMoves(n))
-bestValue := −∞
-para cada sucessor nk em sucessores
-bestValue := max (bestValue, −negamax (nk
-, d−1, −β, − α, −c))
-α := max (α, bestValue)
-se α ≥ β
-break
-return bestValue
-|#
-;!=====================================================================
 ;;TODO
 ;; geral -> limite de tempo usado,
 ;; cada jogada -> valor, profundidade do grafo, numero de cortes na analise
@@ -111,40 +116,52 @@ return bestValue
 ; - o numero de nos analisados
 ; - o numero de cortes efetuados (de cada tipo)
 
-
-;; negamax
-(defun negamax(node max-time 
-    		&optional	
-              	(player 1)
-				(c 1)                             ; color
-				(alpha most-negative-fixnum) 
-              	(beta most-positive-fixnum) 
-			  	(nodes-visited 1)
-			  	(cuts-number 0)
-              	(start-time (get-internal-real-time))
-				(depth 49)                            ; 14x14/(4) -> numero de jogadas necessarias para encher o tabuleiro com pecas de 4 casas (melhor caso)
-			  )
 "
 [node] 
 [max-time] input - limit time for an execution
 [alpha] 
 [beta]
-[player] 
+[color] 
 [start-time] timestamp - Execution start timestamp
 [cuts-number] performance stats - returns the number of cuts executed
 [nodes-visited] performance stats - returns the number of nodes visited
 "
-	(let* (
-			(children-nodes ())
-		 )
+;; negamax
+;; used auxiliary functions (empty-board)
+(defun negamax (max-time
+			&optional
+				(node (make-node (empty-board) nil (player-info 1) (player-info -1) most-negative-fixnum))
+				(color 1)
+				(alpha most-negative-fixnum)
+				(beta most-positive-fixnum)
+				(nodes-visited 1)
+				(cuts-number 0)
+				(start-time (get-internal-real-time))
+				(depth 2))
+	(let* ((children (order-nodes (expand-node node (operations) color))))
 		(cond 
-		((or (> (runtime start-time) max-time) (= depth 0) (null children) solution-node) ;! Condicao de termino	
-		(t
-			()
-		)
+			((or (= depth 0) (null children) (> (runtime start-time) max-time)) (final-node-f node color))
+			(t (-negamax max-time node children color alpha beta nodes-visited cuts-number start-time depth))
 		)
 	)
 )
+
+(defun -negamax(max-time parent children color alpha beta nodes-visited cuts-number start-time depth)
+	(cond 
+	((= (length children) 1) (negamax max-time (-f (car children)) (- color) (- beta) (- alpha) (1+ nodes-visited) cuts-number start-time (1- depth)))
+	(t (let* ((node (negamax max-time (-f (car children)) (- color) (- beta) (- alpha) (1+ nodes-visited) cuts-number start-time (1- depth)))
+				(best-node (max-f parent  node))
+				(alpha (max alpha (node-value best-node)))
+				)
+		(cond 
+			((>= alpha beta ) parent)
+			(t (-negamax max-time parent (cdr children) color alpha beta nodes-visited cuts-number start-time depth))
+		)
+	))
+	)
+)
+
+
 
 ; ---------------------------------------- ;
 ;;; Aux Functions
@@ -153,15 +170,20 @@ return bestValue
 ;; Uses one piece and applies an operation with a possible move to create a child from a node 
 ;; returns a node
 ;; test => (get-child (make-node (empty-board)) (car (possible-moves (init-pieces) 'piece-a (empty-board))) 'piece-a)
-(defun get-child(node possible-move operation &optional (h 'h0) (solution 0) &aux (pieces-left (node-pieces-left node)) (state (node-state node)))
-    "Operation must be a function"
-    (let (
-          (move (funcall operation pieces-left possible-move state))
-          (updated-pieces-list (remove-used-piece pieces-left operation))  
+(defun get-child(node possible-move operation color &aux (pieces-left (pieces-list node color)) (state (node-state node)))
+    "
+	[Operation] must be a function
+	[color] represents the player - player1 = 1 || player2 = -1 
+	"
+    (let* (
+          (move (funcall operation pieces-left possible-move state color))
+          (updated-pieces-list (remove-used-piece pieces-left operation))
+		  (updated-player-info (player-info color (append (player-moves node color) (move-info operation possible-move)) updated-pieces-list))  
           )
       (cond 
         ((null move) nil)
-        (t (make-node move node (1+ (node-depth node)) (hts solution move h updated-pieces-list) updated-pieces-list)) 
+		((= color 1) (make-node move nil updated-player-info (node-p2 node) (count-points updated-pieces-list)))
+        (t (make-node move nil (node-p1 node) updated-player-info (count-points updated-pieces-list))) 
       )
   )
 )
@@ -171,11 +193,11 @@ return bestValue
 ;; Uses the get-child function to create a child for every possible move with a piece
 ;; Generates all children from a operation(piece)
 ;; returns a list of nodes 
-;; test => (get-children (make-node (board-d)) (possible-moves (init-pieces) 'piece-a (board-d)) 'piece-a)
-(defun get-children(node possible-moves operation &optional (h 'h0) (solution 0))
+;; test => (get-children (make-node (board-t)) (possible-moves  (player-info 1  (move-info 'piece-c-2 '(0 0))) 'piece-a (board-t)) 'piece-a 1)
+(defun get-children(node possible-moves operation color)
   (cond 
     ((null possible-moves) nil)
-    (t (cons (get-child node (car possible-moves) operation h solution) (get-children node (cdr possible-moves) operation h solution)))
+    (t (cons (get-child node (car possible-moves) operation color) (get-children node (cdr possible-moves) operation color)))
   )
 )
 
@@ -184,27 +206,48 @@ return bestValue
 ;; Uses the get-children function to generate all possibilities from each operation(piece)
 ;; In sum, expand a node 
 ;; return a list of nodes
-;; test => (expand-node (make-node (empty-board)) 'possible-moves (operations) 'bfs) 
-(defun expand-node(node possible-moves operations alg &optional (g 0) (h 'h0) (solution 0))
+;; test => (expand-node (make-node (empty-board)) (operations) 1)  
+(defun expand-node(node operations color)
   "
-  [possible-moves] must be a function that returns a list with indexes and the operations,
   [operations] must be a list with all available operations
   "
-  (cond
-    ((null operations) nil)
-    ((and (equal alg 'dfs) (< g (1+ (node-depth node)))) nil)
-    (t (remove-nil (append (get-children node (funcall possible-moves (node-pieces-left node) (car operations) (node-state node)) (car operations) h solution)        
-                      (expand-node node possible-moves (cdr operations) alg g h solution)
-                   )
-       )
-    )
-  )
+	(let ((player-data (cond ((= color 1) (node-p1 node)) (t (node-p2 node)))))
+		(cond
+    		((null operations) nil)
+    		(t (remove-nil (append (get-children node (funcall #'possible-moves player-data (car operations) (node-state node)) (car operations) color)        
+                      (expand-node node (cdr operations) color))))
+   		)
+  	)
 )
 
-;;
-(defun order-nodes(node-list)
+;; order-nodes
+;; Order a list of nodes (Descending by value)
+;; test
+;; (order-nodes (expand-node (make-node (empty-board)) (operations) 1))
+(defun order-nodes(node-list) 
+	(sort node-list #'> :key #'node-value)
+)
 
+(defun max-f(node1 node2)
+	(cond 
+	((>= (node-value node1) (node-value node2)) node1)
+	(t node2)
+	)
+)
 
+(defun -f(node)
+	(make-node (node-state node) (node-parent node) (node-p1 node) (node-p2 node) (- (node-value node)))
+)
+
+(defun final-node-f(node color)
+	(make-node (node-state node) (node-parent node) (node-p1 node) (node-p2 node) (* color (node-value node)))
+)
+
+(defun remove-duplicated(list1 list2)
+	(cond 
+		((null list2) list1)
+		(t (remove-nil (mapcar (lambda(x) (cond ((exist-nodep x list2) nil) (t x))) list1)))
+	)
 )
 
 ;; exist-nodep
@@ -213,26 +256,9 @@ return bestValue
 ;; test => (exist-nodep (make-node (empty-board)) (list (make-node (board-d))(make-node (empty-board))))
 (defun exist-nodep(node node-list)
   (cond 
-   ((null node-list)nil)
+   ((null node-list) nil)
    (t (eval (cons 'or (mapcar (lambda (x) (cond ((equal (node-state node) (node-state x)) t) (t nil))) node-list))))
    )
-)
-
-; ---------------------------------------- ;
-;;; Endgame Functions
-
-;; winner
-;; defines the winner
-;; uses the function 'count-points' (puzzle/game dependent) 
-;; returns 
-(defun winner(node)
-	(let ((p1-points (funcall #'count-points )) (p2-points (funcall #'count-pieces )))
-		(cond 
-		((< p1-points p2-points) 'Player1)
-		((> p1-points p2-points) 'Player2)
-		(t 'Draw)
-		)
-	)
 )
 
 ; ---------------------------------------- ; 

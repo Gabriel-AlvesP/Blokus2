@@ -24,8 +24,8 @@
     (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;10
     (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;11
     (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;12
-    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;13
-    (0 0 0 0 0 0 0 0 0 0 0 0 0 0));14
+    (0 0 0 0 0 0 0 0 0 0 0 0 1 1) ;13
+    (0 0 0 0 0 0 0 0 0 0 0 0 1 1));14
 )
 
 ;; Problem
@@ -115,7 +115,7 @@
 (defun replace-multi-pos (pos-list board &optional (val 1)) 
     (cond 
       ((null pos-list) board)
-      (t (replace-multi-pos (cdr pos-list) (replace- (first (car pos-list)) (second (car pos-list)) board val)))
+      (t (replace-multi-pos (cdr pos-list) (replace- (first (car pos-list)) (second (car pos-list)) board val) val))
     )
 )
 
@@ -232,7 +232,7 @@
 ;; (filter-possible-moves '(1 1 1) 'piece-a (board-t) (list '(1 1) '(0 0) '(12 12) '(13 13)) -1
 ;; ((13 13))
 (defun filter-possible-moves(pieces-list piece board indexes-list player)
-  (remove-nil(mapcar (lambda (index) (cond ((can-placep pieces-list board (first index) (second index) piece player) index) (t nil))) indexes-list))
+  (remove-nil (mapcar (lambda (index) (cond ((can-placep pieces-list board (first index) (second index) piece player) index) (t nil))) indexes-list))
 )
 
 ;; possible-moves
@@ -309,9 +309,11 @@
 "
 [player] player1 = 1 || player2 = -1
 "
-  (cond 
-    ((null (can-placep pieces-list board row col piece player)) nil)
-    (t (replace-multi-pos (piece-taken-elems row col piece) board)))
+  (let ((val (cond ((= player 1) 1) (t 2))))
+    (cond 
+      ((null (can-placep pieces-list board row col piece player)) nil)
+      (t (replace-multi-pos (piece-taken-elems row col piece) board val)))
+  )
 )
 
 ;; pieces-left-numb
@@ -354,13 +356,18 @@
 ;; operations
 ;; returns a list with all operations
 (defun operations()
-  (list 'piece-a 'piece-b 'piece-c-1 'piece-c-2)
+  (list 'piece-b 'piece-c-1 'piece-c-2 'piece-a)
 )
 
 ;; piece-a
 ;; board = (node-state node)
 ;; returns board with the pieces placed or nil if fails 
 (defun piece-a (pieces-list index board player)
+"
+[pieces-list] list with the number of each piece left
+[index] list with row and column
+[player] player playing  player1 = 1 || player2 = -1
+"
   (insert-piece pieces-list (first index) (second index) board 'piece-a player)
 )
 
@@ -383,7 +390,22 @@
 ;;; Endgame Handling
 
 (defun count-points (pieces-list)
-  (+ (first pieces-list) (* (second pieces-list) 4) (* (third pieces-list) 4))
+  (- (+ (first pieces-list) (* (second pieces-list) 4) (* (third pieces-list) 4)))
+  ;(+ (first pieces-list) (* (second pieces-list) 4) (* (third pieces-list) 4))
+)
+
+;; winner
+;; defines the winner
+;; uses the function 'count-points' (puzzle/game dependent) 
+;; returns 
+(defun winner(node)
+	(let ((p1-points (count-points (pieces-list node 1))) (p2-points (count-pieces (pieces-list node -1))))
+		(cond 
+		((> p1-points p2-points) 'Jogador1)
+		((< p1-points p2-points) 'Jogador2)
+		(t 'Empate)
+		)
+	)
 )
 
 
