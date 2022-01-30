@@ -40,7 +40,7 @@
 ;;  uses the function 'init-pieces' (puzzle/game dependent) to define the pieces list
 ;;  returns a list with all data
 ;;  test => (make-node (empty-board))
-(defun make-node(state &optional (parent nil) (p1-node (player-info)) (p2-node (player-info -1)) (f -500))
+(defun make-node(state &optional (parent nil) (p1-node (player-info)) (p2-node (player-info -1)) (f most-negative-fixnum))
   (list state parent f p1-node p2-node)
 )
 
@@ -58,7 +58,7 @@
   (second node)
 )
 
-;; node-value (f)
+;; node-value
 (defun node-value(node)
 	(third node)
 )
@@ -128,59 +128,36 @@
 "
 ;; negamax
 ;; used auxiliary functions (empty-board)
-(defun negamax (max-time
-			&optional
-				(node (make-node (empty-board) nil (player-info 1) (player-info -1) most-negative-fixnum))
-				(color 1)
-				(alpha most-negative-fixnum)
-				(beta most-positive-fixnum)
-				(nodes-visited 1)
-				(cuts-number 0)
-				(start-time (get-internal-real-time))
+(defun negamax(max-time &optional	
+				(node-list (list (make-node (empty-board))))
+				(best-node (make-node (empty-board) nil (player-info 1) (player-info -1) most-negative-fixnum))
+				(color 1)                                                                             ; represents the player playing
+				(alpha most-negative-fixnum) 
+              	(beta most-positive-fixnum) 
+			  	(nodes-visited 1)
+			  	(cuts-number 0)
+              	(start-time (get-internal-real-time))
 				(depth 7)
+			  )
+	(let* ((cur-node (car node-list)) 
+			(children (order-nodes (expand-node cur-node (operations) color)))
+			(alpha (max alpha (node-value cur-node))))
+		(cond 
+			((> alpha beta) best-node)
+			;;(> (runtime start-time) max-time)
+			((or  (= depth 0) (null children)) (-f best-node))
+			(t (let* ((best-node (-f (max-f best-node (negamax max-time (append (remove-duplicated children (cdr node-list)) (cdr node-list)) 
+										best-node (- color) (- beta) (- alpha) (1+ nodes-visited) cuts-number start-time (1- depth))))))
+				
+					best-node
 				)
-	(let ((children (order-nodes (expand-node node (operations) color))))                                
-		(cond 
-			((or (= depth 0) (null children) (> (runtime start-time) max-time)) (final-node-f node color))
-			(t (-negamax max-time node children color alpha beta nodes-visited cuts-number start-time depth))
+			)
 		)
 	)
 )
 
-(defun -negamax(max-time parent children color alpha beta nodes-visited cuts-number start-time depth)
-	(cond 
-	((= (length children) 1) (negamax max-time (car children) (- color) (- beta) (- alpha) (1+ nodes-visited) cuts-number start-time (1- depth)))
-	(t (let* ((node (negamax max-time (car children) (- color) (- beta) (- alpha) (1+ nodes-visited) cuts-number start-time (1- depth))) 
-				(best-node (max-f parent node))
-				(alpha (max alpha (node-value best-node)))
-			 )
-		(cond 
-			((>= alpha beta) parent)
-			(t (-negamax max-time parent (cdr children) color alpha beta nodes-visited cuts-number start-time depth))
-		)
-		))
-	)
-)
 
-; ---------------------------------------- ;
-;;; Solution Node
 
-;; Solution node
-(defun solution-node(node visited-nodes cuts-number start-time)
-	(list node visited-nodes cuts-number (runtime start-time))
-)
-
-;; solution
-(defun solution-get-node(sol-node) (car sol-node))
-
-;; solution-get-visited-nodes
-(defun solution-get-visited-nodes(sol-node) (second sol-node))
-
-;; solution-get-cuts
-(defun solution-get-cuts(sol-node)(third sol-node))
-
-;; solution-runtime
-(defun solution-runtime(sol-node)(fourth sol-node))
 
 ; ---------------------------------------- ;
 ;;; Aux Functions
@@ -201,8 +178,8 @@
           )
       (cond 
         ((null move) nil)
-		((= color 1) (make-node move nil updated-player-info (node-p2 node) (count-points updated-pieces-list)))
-        (t (make-node move nil (node-p1 node) updated-player-info (count-points updated-pieces-list))) 
+		((= color 1) (make-node move node updated-player-info (node-p2 node) (count-points updated-pieces-list)))
+        (t (make-node move node (node-p1 node) updated-player-info (count-points updated-pieces-list))) 
       )
   )
 )
@@ -232,7 +209,7 @@
   "
 	(let ((player-data (cond ((= color 1) (node-p1 node)) (t (node-p2 node)))))
 		(cond
-    		((null operations) nil)
+    		((or (null operations) (null node)) nil)
     		(t (remove-nil (append (get-children node (funcall #'possible-moves player-data (car operations) (node-state node)) (car operations) color)        
                       (expand-node node (cdr operations) color))))
    		)
@@ -254,20 +231,10 @@
 	)
 )
 
-;; -f 
-;; returns a node with its value reversed
 (defun -f(node)
 	(make-node (node-state node) (node-parent node) (node-p1 node) (node-p2 node) (- (node-value node)))
 )
 
-;; final-node-f 
-;; returs a node with its value multiplied by the player pieces color
-(defun final-node-f(node color)
-	(make-node (node-state node) (node-parent node) (node-p1 node) (node-p2 node) (* color (node-value node)))
-)
-
-;; remove-duplicated 
-;; removes elements duplicated between 2 lists
 (defun remove-duplicated(list1 list2)
 	(cond 
 		((null list2) list1)

@@ -115,7 +115,7 @@
 (defun replace-multi-pos (pos-list board &optional (val 1)) 
     (cond 
       ((null pos-list) board)
-      (t (replace-multi-pos (cdr pos-list) (replace- (first (car pos-list)) (second (car pos-list)) board val) val))
+      (t (replace-multi-pos (cdr pos-list) (replace- (first (car pos-list)) (second (car pos-list)) board val)))
     )
 )
 
@@ -232,7 +232,7 @@
 ;; (filter-possible-moves '(1 1 1) 'piece-a (board-t) (list '(1 1) '(0 0) '(12 12) '(13 13)) -1
 ;; ((13 13))
 (defun filter-possible-moves(pieces-list piece board indexes-list player)
-  (remove-nil (mapcar (lambda (index) (cond ((can-placep pieces-list board (first index) (second index) piece player) index) (t nil))) indexes-list))
+  (remove-nil(mapcar (lambda (index) (cond ((can-placep pieces-list board (first index) (second index) piece player) index) (t nil))) indexes-list))
 )
 
 ;; possible-moves
@@ -309,11 +309,9 @@
 "
 [player] player1 = 1 || player2 = -1
 "
-  (let ((val (cond ((= player 1) 1) (t 2))))
-    (cond 
-      ((null (can-placep pieces-list board row col piece player)) nil)
-      (t (replace-multi-pos (piece-taken-elems row col piece) board val)))
-  )
+  (cond 
+    ((null (can-placep pieces-list board row col piece player)) nil)
+    (t (replace-multi-pos (piece-taken-elems row col piece) board)))
 )
 
 ;; pieces-left-numb
@@ -390,8 +388,7 @@
 ;;; Endgame Handling
 
 (defun count-points (pieces-list)
-  ;(- (+ (first pieces-list) (* (second pieces-list) 4) (* (third pieces-list) 4)))
-  (+ (- 10 (first pieces-list)) (* (- 10(second pieces-list)) 4) (* (- 15 (third pieces-list)) 4))
+  (-(+ (first pieces-list) (* (second pieces-list) 4) (* (third pieces-list) 4)))
 )
 
 ;; winner

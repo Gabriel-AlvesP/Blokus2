@@ -110,6 +110,23 @@
 
 (defun winner-view())
 
+
+(defun jogar(pos time)
+  (let* ((pieces-1 (subtract-lists (pieces) (count-board pos 1)))
+         (pieces-2 (subtract-lists (pieces) (count-board pos -1)))
+         (node (construct-node pos NIL pieces-1 pieces-2 NIL))
+         (solution-node (negamax node time))
+         (play (get-play (car solution-node)))
+        )
+
+    (progn
+      (write-log solution-node pos 1) ;! write-log 
+     (if (null play) (list NIL pos)
+     (list play (put-piece pos (second play) (third play) (first play) 1)))
+     )
+  )
+)
+
 ;;; Files Handler (log.dat)
 
 ;; get-log-path
@@ -126,12 +143,48 @@
 ; - o numero de cortes efetuados (de cada tipo)
 ;- tempo gasto
 (defun log-header()
- (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create)
+   (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create)
           (format file "~%----------------- INICIO -----------------~%"))  
+          
 )
 
 (defun log-file())
+
+
 (defun log-content())
+(defun write-log (solution-node old-board color)
+  (let* ((current-node (car solution-node))
+         (play (get-play current-node))
+         (player-name (get-player-name current-node color))
+         (piece-type (first play))
+         (position-x (second play))
+         (position-y (third play))
+         (board (put-piece old-board position-x position-y piece-type color)))
+    (progn
+       (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create)
+          (write-log-stream file solution-node board player-name piece-type position-x position-y color))    
+       (write-log-stream t solution-node board player-name piece-type position-x position-y color))
+  )
+)
+
+(defun write-end-log(current-node)
+  (progn
+       (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create)
+            (show-winner-message current-node file))
+       (show-winner-message current-node t)
+  )
+) 
+
+(defun log-stats (stream solution-node board player piece row col color)
+  (progn 
+    (print-board board stream)
+    (format stream "~%~%~t~a jogou em (~a , ~a)~%" player piece row col) ;TODO
+    (format stream "~tNos Analisados: ~a ~%" (get-solution-analised-nodes (cadr solution-node)))
+    (format stream "~tNumero de Cortes: ~a ~%" (get-solution-cuts (cadr solution-node)))
+    (format stream "~tTempo de Execucao: ~a ~%" (get-solution-time-spent (cadr solution-node)))
+  )                       
+)
+
 (defun log-winner())
 
 ;;; Formatters
