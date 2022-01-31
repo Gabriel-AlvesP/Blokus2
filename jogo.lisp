@@ -16,36 +16,123 @@
   (let* (
           (p-moves    (expand-node node (operations) 1))
           (p-pieces   (pieces-list node 1))
-          (can-p-play (or (null c1-moves) (= 0 (apply '+ c1-pieces))))        ; t = can't play
+          (can-p-play (or (null p-moves) (= 0 (apply '+ p-pieces))))                                          ; t = can't play
           (c-moves    (expand-node node (operations) -1))
           (c-pieces   (pieces-list node -1))
-          (can-c-play (or (null c2-moves) (= 0 (apply '+ c2-pieces))))        ; t = can't play
-          (can-current-play (cond ((= player 1) can-c1-play) (t can-c2-play)))  ; t = can't play
+          (can-c-play (or (null c-moves) (= 0 (apply '+ c-pieces))))                                          ; t = can't play
+          (can-current-play (cond ((= player 1) can-c-play) (t can-c-play)))                                  ; t = can't play
         )
     (cond 
       ((and can-c1-play can-c2-play) (log-footer node))
-      ((= -1 player)                                    ; Man 
-
+      ((= 1 player)                                                                                           ; Man 
+        (cond 
+          ((eval can-current-play) 
+            (progn  
+              (format t "~%~%________Sem Jogadas________~%~%")
+              (human-vs-computer max-time (- player) node))
+          )
+          (t(let* (
+                    (piece (piece-input))    ;!
+                    (indexes (move-input))  ;!
+                    (move (get-child node indexes piece player))
+                  )
+              (progn
+                  (log-file solution-nd player)
+                  (format t "Jogou a peca ~a na posicao (~a , ~a)~%" piece (first indexes) (second indexes))
+                  (human-vs-computer max-time (- player) move)
+              ) 
+            )
+          )
+        )
       )
-      (t                                                ; Computer 
-        (cond )
+      (t                                                                                                       ; Computer 
+        (cond 
+          ((eval can-current-play) 
+            (progn  
+              (format t "~%~%________Computador Sem Jogadas________~%~%")
+              (human-vs-computer max-time (- player) node)
+            )
+          )
+          (t(let* (
+                    (solution-nd (negamax max-time node 1 player))
+                    (sol-node (get-solution-node solution-nd))
+                  )
+              (progn 
+                (log-file solution-nd player) 
+                (human-vs-computer max-time (- player) (make-node (node-state sol-node) nil (node-p1 sol-node) (node-p2 sol-node)))
+              )
+            )
+          )
+        )
       ) 
-
     )
-
   )
 )
 
-;; run-h-vs-c
+(defun piece-view(pieces)
+  (prog 
+    (format t "~%___________________________________________________________")
+    (format t "~%\\           Escolha o tipo de peca a colocar              /")
+    (cond ((> (car pieces) 0)
+    (format t "~%/                     1 - peca A                          \\"))
+    ((> (second pieces) 0)
+    (format t "~%\\                    2 - peca B                           /"))
+      ((> (third pieces) 0)
+    (format t "~%\\                    3 - peca C1                         \\")
+    (format t "~%/                     4 - peca C2                          /")))
+    (format t "~%/_________________________________________________________\\~%~%>")
+  )
+)
+
+;; run-h-vs-c ()
 ;; person = -1 || computer = 1
 (defun run-h-vs-c() 
-  (let* ((starter (get-starter)) (starter-val (cond ((= 1 starter) -1) (t 1) )) (max-time (get-time-limit)))
+  (let* ((starter (get-starter)) (starter-val (cond ((= 1 starter) 1) (t -1) )) (max-time (get-time-limit)))
     (progn
       (log-header max-time)
       (human-vs-computer max-time starter-val)
     ) 
   )
 )
+
+(defun piece-input(node player &optional (pieces (pieces-list node player)))
+    (prog
+        (piece-view pieces)
+        (let (option (read))
+          (cond 
+            ((or (not (numberp option)) (< 1 option) (> 4 option)) 
+              (progn 
+                (format t "~% __________________________________________________________")
+                (format t "~%/                 Escolha uma opcao valida                /") 
+                (format t "~%__________________________________________________________~%")
+                (piece-input node player pieces)
+              ) 
+            )
+            (t 
+              (cond 
+                ((and (= 1 option) (> (first pieces) 0)) 'piece-a) 
+                ((and (= 2 option) (> (second pieces) 0)) 'piece-a) 
+                ((and (= 3 option) (> (third pieces) 0)) 'piece-a) 
+                ((and (= 4 option) (> (fourth pieces) 0)) 'piece-a) 
+
+              )
+            )
+          )
+        )
+    )
+  
+)
+
+
+(defun move-input(node piece player)
+  (let* (
+          (pieces (pieces-list node player))
+          (state (node-state node))
+          (moves (possible-moves pieces piece state player))
+        )
+  )
+)
+
 
 (defun computer-only(max-time player &optional (node (make-node (empty-board))))
   (let* (
