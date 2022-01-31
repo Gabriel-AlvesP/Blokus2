@@ -90,7 +90,7 @@
     (format t "~%/                     4 - peca C2  - ~a                       /" (third pieces))
     (format t "~%/_________________________________________________________\\~%~%>")
   )
-
+)
 
 
 (defun piece-input(node player &aux (pieces (pieces-list node player)))
