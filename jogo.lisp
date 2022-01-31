@@ -8,15 +8,66 @@
 
 ;; jogar 
 ;; returns a list with 2 elements [play board-state(after the play)]
-(defun jogar(pos time)
+#|(defun jogar(pos time)
 "
 [pos] position 
 [time] maximum (1 - 20 milliseconds) time of an computer play
 "
 )
 
-(defun human-vs-computer(max-time ))
-(defun computer-only())
+(defun human-vs-computer(max-time color &optional (node (make-node (empty-board))))
+  (let* (
+          ()
+        )
+
+  )
+)
+|#
+
+(defun computer-only(max-time color &optional (node (make-node (empty-board))))
+  (let* (
+          (c1-moves    (expand-node node (operations) 1))
+          (c1-pieces   (pieces-list node 1))
+          (can-c1-play (or (null c1-moves) (= 0 (apply '+ c1-pieces))))        ; t = can't play
+          (c2-moves    (expand-node node (operations) -1))
+          (c2-pieces   (pieces-list node -1))
+          (can-c2-play (or (null c2-moves) (= 0 (apply '+ c2-pieces))))        ; t = can't play
+          (can-current-play (cond ((= color 1) can-c1-play) (t can-c2-play)))  ; t = can't play
+        )
+    (cond 
+      ((and can-c1-play can-c2-play) (footer node))                            ; endgame (+ log.dat)
+      (t 
+        (cond 
+          ((eval can-current-play) 
+            (progn  
+              (format t "~%________Sem Jogadas________~%")
+              (computer-only max-time (- color) node)
+            )
+          )
+          (t(let* (
+                    (solution-nd (negamax max-time node 1))
+                    (sol-node (get-solution-node solution-nd))
+                  )
+              (progn 
+                (log-file solution-nd color) 
+                (computer-only max-time (- color) (make-node (node-state sol-node) nil (node-p1 sol-node) (node-p2 sol-node)))
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+)
+
+(defun run-computer-only()
+  (let ((max-time (get-time-limit)))
+    (progn 
+      (log-header max-time)
+      (computer-only max-time 1)
+    )
+  )
+)
 
 ;;; Menus + Views (and its operations)
 
@@ -41,7 +92,7 @@
       (if (and (numberp option) (>= option 0) (<= option 2)) 
         (cond
           ((equal option 1) (get-starter))
-          ((equal option 2) (get-time-limit)) 
+          ((equal option 2) (run-computer-only)) 
           ((equal option 0) (format t "~%Adeus!"))
         ) 
 
@@ -70,7 +121,7 @@
     (cond
       ((or (< option 0) (> option 2)) (progn (format t "Insira uma opcao valida") (get-starter)))
       ((= option 0) (start))
-      (t (get-time-limit option))
+      (t option)
     )
   )
 )
@@ -88,14 +139,13 @@
 )
 
 ;; get-time-limit
-(defun get-time-limit(&optional (starter nil))
+(defun get-time-limit()
   (progn (time-limit-view)
     (let ((option (read)))
       (cond 
-        ((and (= option 0) (null starter)) (start))
-        ((= option 0) (get-starter))
+        ((= option 0) (start))
         ((or (not (numberp option)) (< option 1) (> option 20)) (progn (format t "Insira uma opção válida") (get-time-limit)))
-        (t (list starter option))
+        (t option)
       )
     )
   )
@@ -106,30 +156,10 @@
 
 ;; get-move
 ;; piece and position
-(defun get-move()
+(defun get-move())
 
-)
+(defun winner-view())
 
-(defun winner-view()
-
-)
-
-
-(defun jogar(pos time)
-  (let* ((pieces-1 (subtract-lists (pieces) (count-board pos 1)))
-         (pieces-2 (subtract-lists (pieces) (count-board pos -1)))
-         (node (construct-node pos NIL pieces-1 pieces-2 NIL))
-         (solution-node (negamax node time))
-         (play (get-play (car solution-node)))
-        )
-
-    (progn
-      (write-log solution-node pos 1) ;! write-log 
-     (if (null play) (list NIL pos)
-     (list play (put-piece pos (second play) (third play) (first play) 1)))
-     )
-  )
-)
 
 ;;; Files Handler (log.dat)
 
@@ -146,32 +176,31 @@
 ; - o numero de nos analisados
 ; - o numero de cortes efetuados (de cada tipo)
 ;- tempo gasto
-(defun log-header()
-   (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create)
-          (format file "~%----------------- INICIO -----------------~%"))  
-          
+(defun log-header(max-time)
+  (progn (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create)
+          (format file "~%----------------- INICIO -----------------~%max-time: ~a~%~%" max-time))  
+          (format t "~%----------------- INICIO -----------------~%max-time: ~a~%~%" max-time) 
+  )     
 )
 
-(defun log-file())
-
-
-(defun log-content())
-(defun write-log (solution-node old-board color)
-  (let* ((current-node (car solution-node))
-         (play (get-play current-node))
-         (player-name (get-player-name current-node color))
-         (piece-type (first play))
-         (position-x (second play))
-         (position-y (third play))
-         (board (put-piece old-board position-x position-y piece-type color)))
-    (progn
-       (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create)
-          (write-log-stream file solution-node board player-name piece-type position-x position-y color))    
-       (write-log-stream t solution-node board player-name piece-type position-x position-y color))
+(defun log-file(solution-nd color)
+  (let* (
+        (player (cond ((= color 1) 1) (t 2)))
+        (node (get-solution-node solution-nd))
+        (move (last-move node color))
+        (visited-nodes (get-visited-nodes solution-nd))
+        (cuts (get-cuts solution-nd))
+        (alg-runtime (get-runtime solution-nd))
+      )
+    (progn 
+      (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create)
+        (log-stream file (node-state node) player (first move) (second move) visited-nodes cuts alg-runtime))
+      (log-stream t (node-state node) player (first move) (second move) visited-nodes cuts alg-runtime)
+    )
   )
 )
 
-(defun write-end-log(current-node)
+(defun log-footer(current-node)
   (progn
        (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create)
             (show-winner-message current-node file))
@@ -179,13 +208,14 @@
   )
 ) 
 
-(defun log-stats (stream solution-node board player piece row col color)
+(defun log-stream (stream state player piece indexes nodes-visited cuts runtime)
   (progn 
-    (print-board board stream)
-    (format stream "~%~%~t~a jogou em (~a , ~a)~%" player piece row col) ;TODO
-    (format stream "~tNos Analisados: ~a ~%" (get-solution-analised-nodes (cadr solution-node)))
-    (format stream "~tNumero de Cortes: ~a ~%" (get-solution-cuts (cadr solution-node)))
-    (format stream "~tTempo de Execucao: ~a ~%" (get-solution-time-spent (cadr solution-node)))
+    (format-board state stream)
+    (format stream "~%Jogador ~a ~%" player)
+    (format stream "Jogou a peca ~a na posicao (~a , ~a)~%" piece (first indexes) (second indexes))
+    (format stream "Nos Analisados: ~a ~%" nodes-visited)
+    (format stream "Numero de Cortes: ~a ~%" cuts)
+    (format stream "Tempo de Execucao: ~a ~%" runtime)
   )                       
 )
 
@@ -193,29 +223,16 @@
 
 ;;; Formatters
 
-(defun format-board-line (board)
+(defun format-board-line (board &optional (stream t))
   (cond
    ((null (first board)) "")
-   (t (format nil "~a~%" (first board)))
+   (t (format stream "~a~%" (first board)))
    )
 )
 
-(defun format-board (board)
+(defun format-board (board &optional (stream t))
   (cond
    ((null board) "")
-   (t (format nil "~a~a" (format-board-line board) (format-board (cdr board))))
+   (t (format stream "~a~a" (format-board-line board) (format-board (cdr board))))
    )
 )  
-
-(defun format-solution-path (path)
-  (cond
-   ((null path) "")
-   (t (format nil "~a~%~a" (format-board (first (first path))) (format-solution-path (cdr path))))
-   )
-)
-
-;; current-time
-;; returns a list with a actual time (hours minutes seconds)
-(defun current-time()
-  (get-internal-real-time)
-)

@@ -93,6 +93,12 @@
 	)
 )
 
+(defun last-move(node color)
+  (let ((moves (player-moves node color)))
+    (nth (1-(length moves)) moves)
+  )
+)
+
 ;; pieces-list
 ;; player's pieces left list
 (defun pieces-list(node color)
@@ -109,20 +115,11 @@
 ;;TODO
 ;; geral -> limite de tempo usado,
 ;; cada jogada -> valor, profundidade do grafo, numero de cortes na analise
-;; TODO
-;; Ficheiro log.dat : 
-; - qual a jogada realizada
-; - o valor da posicao para onde jogou
-; - o numero de nos analisados
-; - o numero de cortes efetuados (de cada tipo)
-
-
-
-; --------------------------------------- ; 
 (defun negamax(max-time                 
                &optional 
                (node (make-node (empty-board) nil (player-info 1) (player-info -1) most-negative-fixnum))
                (color 1)
+               (player 1)
                (max-depth 6)
                (alpha most-negative-fixnum) 
                (beta most-positive-fixnum) 
@@ -135,12 +132,12 @@
     (cond
      ((or (= max-depth 0) (null children) (>= (runtime start-time) max-time)) 
       (solution-node (final-node-f node color) visited-nodes cuts start-time))
-     (t (negamax- node children max-time color max-depth alpha beta start-time visited-nodes cuts))
+     (t (negamax- node children max-time color player max-depth alpha beta start-time visited-nodes cuts))
      )
     )
   )
 
-(defun negamax-(parent children max-time color max-depth alpha beta start-time visited-nodes cuts)
+(defun negamax-(parent children max-time color player max-depth alpha beta start-time visited-nodes cuts)
 	(cond
    		((= (length children) 1) 
     		(negamax max-time (-f (car children)) (- color) (1- max-depth) (- beta) (- alpha) start-time (1+ visited-nodes) cuts))
@@ -195,14 +192,14 @@
     (let* (
           (move (funcall operation pieces-left possible-move state color))
           (updated-pieces-list (remove-used-piece pieces-left operation))
-		  ;(updated-player-info (player-info color (append (player-moves node color) (move-info operation possible-move)) updated-pieces-list))  
-		  (updated-player-info (player-info color nil updated-pieces-list)) 
+		      (updated-player-info (player-info color (append (player-moves node color) (move-info operation possible-move)) updated-pieces-list))  
+		      ;(updated-player-info (player-info color nil updated-pieces-list)) 
           )
       (cond 
         ((null move) nil)
 		;((= color 1) (make-node move nil updated-player-info (node-p2 node) (count-points updated-pieces-list)))
 		((= color 1) (make-node move nil updated-player-info (node-p2 node) 0))
-        ;(t (make-node move nil (node-p1 node) updated-player-info (count-points updated-pieces-list))) 
+    ;(t (make-node move nil (node-p1 node) updated-player-info (count-points updated-pieces-list))) 
 		(t (make-node move nil (node-p1 node) updated-player-info 0))
       )
   )
@@ -246,7 +243,7 @@
 ;; test
 ;; (order-nodes (expand-node (make-node (empty-board)) (operations) 1))
 (defun order-nodes(node-list) 
-	(sort node-list #'< :key #'node-value)
+	(sort node-list #'> :key #'node-value)
 )
 
 (defun max-f(node1 node2)
@@ -269,7 +266,14 @@
 	(make-node (node-state node) (node-parent node) (node-p1 node) (node-p2 node) (* color (get-h node color)))
 )
 
+;; runtime 
+(defun runtime(start-time)
+	(/(- (get-internal-real-time) start-time) 1000)
+)
 
+
+;!===================================Old=================================================
+#|
 ;; remove-duplicated 
 ;; removes elements duplicated between 2 lists
 (defun remove-duplicated(list1 list2)
@@ -289,15 +293,6 @@
    (t (eval (cons 'or (mapcar (lambda (x) (cond ((equal (node-state node) (node-state x)) t) (t nil))) node-list))))
    )
 )
+|#
 
-; ---------------------------------------- ; 
-;;; Performance Stats
 
-;;TODO
-;; geral -> limite de tempo usado,
-;; cada jogada -> valor, profundidade do grafo, numero de cortes na analise
-
-;; runtime 
-(defun runtime(start-time)
-	(/(- (get-internal-real-time) start-time) 1000)
-)
