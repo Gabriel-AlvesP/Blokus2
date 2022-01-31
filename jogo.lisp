@@ -12,17 +12,40 @@
   (make-pathname :host "D" :directory '(:absolute "GitHub\\Blokus2") :name "log" :type "dat")   
 )
 
-
-#|
 (defun human-vs-computer(max-time player &optional (node (make-node (empty-board))))
   (let* (
-          ()
+          (p-moves    (expand-node node (operations) 1))
+          (p-pieces   (pieces-list node 1))
+          (can-p-play (or (null c1-moves) (= 0 (apply '+ c1-pieces))))        ; t = can't play
+          (c-moves    (expand-node node (operations) -1))
+          (c-pieces   (pieces-list node -1))
+          (can-c-play (or (null c2-moves) (= 0 (apply '+ c2-pieces))))        ; t = can't play
+          (can-current-play (cond ((= player 1) can-c1-play) (t can-c2-play)))  ; t = can't play
         )
+    (cond 
+      ((and can-c1-play can-c2-play) (log-footer node))
+      ((= -1 player)                                    ; Man 
+
+      )
+      (t                                                ; Computer 
+        (cond )
+      ) 
+
+    )
 
   )
-)|#
+)
 
-(defun run-h-vs-c())
+;; run-h-vs-c
+;; person = -1 || computer = 1
+(defun run-h-vs-c() 
+  (let* ((starter (get-starter)) (starter-val (cond ((= 1 starter) -1) (t 1) )) (max-time (get-time-limit)))
+    (progn
+      (log-header max-time)
+      (human-vs-computer max-time starter-val)
+    ) 
+  )
+)
 
 (defun computer-only(max-time player &optional (node (make-node (empty-board))))
   (let* (
@@ -33,15 +56,15 @@
           (c2-pieces   (pieces-list node -1))
           (can-c2-play (or (null c2-moves) (= 0 (apply '+ c2-pieces))))        ; t = can't play
           (can-current-play (cond ((= player 1) can-c1-play) (t can-c2-play)))  ; t = can't play
-          (player-numb (cond ((= player 1) 1) (t 2)))
+          ;(player-numb (cond ((= player 1) 1) (t 2)))
         )
     (cond 
-      ((and can-c1-play can-c2-play) (log-footer node player))                            ; endgame (+ log.dat)
+      ((and can-c1-play can-c2-play) (log-footer node))                            ; endgame (+ log.dat)
       (t 
         (cond 
           ((eval can-current-play) 
             (progn  
-              (format t "~%________Sem Jogadas________~%")
+              (format t "~%~%________Sem Jogadas________~%~%")
               (computer-only max-time (- player) node)
             )
           )
@@ -196,7 +219,7 @@
   )                       
 )
 
-(defun log-footer(node player)
+(defun log-footer(node)
   (progn
     (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create) (log-winner node file))
     (log-winner node t)
@@ -204,18 +227,18 @@
 ) 
 
 (defun log-winner(node stream)
-(let ((pieces-p1 (pieces-list node 1)) (pieces-p2 (pieces-list node -1)) ))
- (format stream    "~%__________________________________________________________")
+  (let ((pieces-p1 (pieces-list node 1)) (pieces-p2 (pieces-list node -1)))
+    (format stream    "~%__________________________________________________________")
     (format stream "~%\\                      BLOKUS DUO                        /")
     (format stream "~%/                                                        \\")
     (format stream "~%\\                       Vencedor                         /")
-    (format stream "~%/                           ~a                           \\" (winner node))
+    (format stream "~%/                           ~a                     \\" (winner node))
     (format stream "~%\\                                                        /")
     (format stream "~%/    Jogador 1: ~a pontos  vs  Jogador 2: ~a pontos      \\" (count-points pieces-p1) (count-points pieces-p2)) 
-    (format stream "~%\\      pecas: ~a                 pecas: ~a               /" pieces-p1 pieces-p2)
+    (format stream "~%\\      pecas: ~a            pecas: ~a         /" pieces-p1 pieces-p2)
     (format stream "~%/                                                        \\")
     (format stream "~%\\________________________________________________________/~%~%> ")
-
+  )
 )
 
 ;;; Formatters
@@ -230,6 +253,6 @@
 (defun format-board (board &optional (stream t))
   (cond
    ((null board) "")
-   (t (format stream "~a~a" (format-board-line board) (format-board (cdr board))))
+   (t (format stream "~&" (append(format-board-line board stream) (format-board (cdr board) stream))))
    )
 )  
