@@ -13,15 +13,16 @@
 )
 
 
-
-(defun human-vs-computer(max-time color &optional (node (make-node (empty-board))))
+#|
+(defun human-vs-computer(max-time player &optional (node (make-node (empty-board))))
   (let* (
           ()
         )
 
   )
-)
+)|#
 
+(defun run-h-vs-c())
 
 (defun computer-only(max-time player &optional (node (make-node (empty-board))))
   (let* (
@@ -35,7 +36,7 @@
           (player-numb (cond ((= player 1) 1) (t 2)))
         )
     (cond 
-      ((and can-c1-play can-c2-play) (log-footer node))                            ; endgame (+ log.dat)
+      ((and can-c1-play can-c2-play) (log-footer node player))                            ; endgame (+ log.dat)
       (t 
         (cond 
           ((eval can-current-play) 
@@ -156,14 +157,6 @@
 
 ;;; Files Handler (log.dat)
 
-
-;; TODO
-;; Ficheiro log.dat : 
-; - qual a jogada realizada
-; - o valor da posicao para onde jogou
-; - o numero de nos analisados
-; - o numero de cortes efetuados (de cada tipo)
-;- tempo gasto
 (defun header(stream max-time)
   (format stream "~%----------------- INICIO -----------------~%max-time: ~a~%~%" max-time)
 )
@@ -203,7 +196,7 @@
   )                       
 )
 
-(defun log-footer(node)
+(defun log-footer(node player)
   (progn
     (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create) (log-winner node file))
     (log-winner node t)
@@ -211,14 +204,15 @@
 ) 
 
 (defun log-winner(node stream)
+(let ((pieces-p1 (pieces-list node 1)) (pieces-p2 (pieces-list node -1)) ))
  (format stream    "~%__________________________________________________________")
     (format stream "~%\\                      BLOKUS DUO                        /")
     (format stream "~%/                                                        \\")
     (format stream "~%\\                       Vencedor                         /")
-    (format stream "~%/                       Jogador ~a                       \\" )
+    (format stream "~%/                           ~a                           \\" (winner node))
     (format stream "~%\\                                                        /")
-    (format stream "~%/    Jogador 1: ~a pontos  vs  Jogador 2: ~a pontos      \\")
-    (format stream "~%\\      pecas:                    pecas:                  /")
+    (format stream "~%/    Jogador 1: ~a pontos  vs  Jogador 2: ~a pontos      \\" (count-points pieces-p1) (count-points pieces-p2)) 
+    (format stream "~%\\      pecas: ~a                 pecas: ~a               /" pieces-p1 pieces-p2)
     (format stream "~%/                                                        \\")
     (format stream "~%\\________________________________________________________/~%~%> ")
 
