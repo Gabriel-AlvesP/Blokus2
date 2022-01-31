@@ -31,7 +31,7 @@ No presente projeto, tal como na 1º fase do Projeto, desenvolvida anteriormente
 
 Nesta fase o objetivo é possibilitar a jogabilidade entre 2 jogadores, tendo em conta o conhecimento adquirido no âmbito da _Teoria de Jogos_.
 
-<img src="tabuleiro.jpg">
+<center><img src="Blokus.jpg"></center>
 
 ## [Regras](#regras)
 
@@ -63,70 +63,62 @@ Nesta fase o objetivo é possibilitar a jogabilidade entre 2 jogadores, tendo em
 
 - Tendo isto, para esta variante do jogo estarão disponíveis 10 peças do tipo "A", 10 do tipo B e 15 do tipo c-1 e c-2 em conjunto.
 
-<img src="pecas.jpg">
+<center><img src="pecas.jpg"></center>
 
 ### [Funcionamento Geral](#funcionamento-geral)
 
 - O número 0 para casas vazias
-- O número 1 para casas ocupadas com peças
-- O número 2 para casas bloqueadas
+- O número 1 representa as casas ocupadas pelas peças do **Jogador 1**
+- O número 2 representa as casas ocupadas pelas peças do **Jogador 2**
 
-  <img src="tabuleiro_bin.jpg">
-
-As peças não podem estar adjacentes umas às outras, e deve existir pelo menos uma de um certo tipo para poder ser inserida.
-
-<img src="funcionamento.jpg">
+<center><img src="tabuleiro_bin.jpg"></center>
 
 ---
 
-### Tabuleiros Disponíveis e objetivos
+## <center>Tabuleiro</center>
 
-#### Problema-a - objetivo 8 casas preenchidas
-
-<img src="problema-a.jpg">
-
----
-
-#### Problema-b - objetivo 20 casas preenchidas
-
-## <img src="tabuleiro-b.jpg">
-
-#### Problema-c - objetivo 28 casas preenchidas
-
-## <img src="problema-c.jpg">
-
-#### Problema-d - objetivo 36 casas preenchidas
-
-## <img src="problema-d.jpg">
-
-#### Problema-e - objetivo 44 casas preenchidas
-
-<img src="problema-e.jpg">
-
----
-
-#### Problema-f - objetivo 72 casas preenchidas
-
-## <img src="problema-f.jpg">
+<center><img src="problema-f.jpg"></center>
 
 ## [Informação produzida](#ecrã-teclado-e-ficheiros)
 
-Inicialmente será apresentado um menu de interação com o utilizador. Para começar o programa deverão ser lidas e seguidas as instruções de [Limitacoes do Programa](#limitacoes-do-programa) e, apenas após poderá ser inserido o comando:
+Inicialmente será apresentado um menu de interação com o utilizador. Para começar o programa deverão ser lidas e seguidas as instruções de [Limitacoes do Programa](#limitacoes-do-programa) e só depois poderá ser inserido o comando:
 
 ```lisp
 (start)
 ```
 
-<img src="menu1.png">
+Este comando dá ínicio ao programa e mostra o seguinte menu.
 
-!<img src="menu2.png">
+<center><img src="menustart.png"></center>
 
-<img src="menu3.png">
+- Opção do utilizador jogar contra o computador.
 
-<img src="tabuleiros.png">
+- Opção do computador jogar contra o computador.
+
+- Opção para sair do jogo.
+
+Caso a escolha seja a primeira opção, será apresentado o seguinte menu, para decidir quem será o primeiro a jogar.
+
+<center><img src=></center>
+
+- Opção que seleciona o Jogador como sendo o primeiro a jogar.
+
+- Opção que seleciona o Computador como sendo o primeiro a jogar.
+
+- Opção para voltar ao menu anterior.
+
+Caso escolha a segunda opção do menu inicial, será apresentado com menu apresentada na seguinte imagem. Este dá ao utilizador a hipotese de escolha do tempo limite para uma jogada do computador.
+
+<center><img src="menucomputertime.png"></center>
+
+- Deverá introduzir um valor no intervalo de 1 a 20.
+
+No final será mostrada uma mensagem com as informações relativas aos intervalos.
+
+<center><img src=></center>
 
 Após a execução do programa será criado um ficheiro ".dat" com o output do mesmo. Este ficheiro de output terá no seu conteúdo as soluções do problema executado bem como as suas estatísticas.
 
-## [Limitacoes do Programa](#limitacoes-do-programa)
+## [Limitações do Programa](#limitacoes-do-programa)
 
 Para que o projeto produza o resultado pretendido, todos os ficheiros .lisp diponibilizados deverão ser executados. Além disso, é ainda necessário que o "path" para os ficheiros seja alterado para que estes sejam compilados com sucesso! Este "path" pode ser encontrado no ficheiro _projeto.lisp_.

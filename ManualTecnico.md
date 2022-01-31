@@ -445,8 +445,6 @@ As funções que verificam os possíveis movimentos, são responsáveis pelas ve
 
 Esta secção contém as funções referentes à inserção das peças, número de peças a inserir, atualização do número de peças a inserir e verificação de todas as possíveis inserções de peças no tabuleiro.
 
-### **[Operadores](#operadores)**
-
 Nesta secção definimos as funções referentes à quantidade de peças iniciais, lista de todas as operações e a inserção das peças no tabueleiro.
 
 #### [Init-pieces](#init_pieces)
@@ -1016,125 +1014,489 @@ As funções auxiliares são utilizadas como suporte aos dados abstratos, aos al
 
 ```lisp
 (defun get-log-path()
-  (make-pathname :host "D" :directory '(:absolute "GitHub\\Blokus2") :name "log" :type "dat")
+  (make-pathname :host "D" :directory '(:absolute "GitHub\\Blokus2") :name "log" :type "dat")   
+)
+```
+
+### [Human-vs-Computer](#human-vs-computer)
+
+- A função _[human-vs-computer](#human-vs-computer)_ é responsável por executar o algoritmo no jogo entre **Humano** (Utilizador) contra **Computador**.
+
+```lisp
+(defun human-vs-computer(max-time player &optional (node (make-node (empty-board))))
+  (let* (
+          (p-moves    (expand-node node (operations) 1))
+          (p-pieces   (pieces-list node 1))
+          (can-p-play (or (null p-moves) (= 0 (apply '+ p-pieces))))                                          ; t = can't play
+          (c-moves    (expand-node node (operations) -1))
+          (c-pieces   (pieces-list node -1))
+          (can-c-play (or (null c-moves) (= 0 (apply '+ c-pieces))))                                          ; t = can't play
+          (can-current-play (cond ((= player 1) can-c-play) (t can-c-play)))                                  ; t = can't play
+        )
+    (cond 
+      ((and can-c1-play can-c2-play) (log-footer node))
+      ((= 1 player)                                                                                           ; Man 
+        (cond 
+          ((eval can-current-play) 
+            (progn  
+              (format t "~%~%________Sem Jogadas________~%~%")
+              (human-vs-computer max-time (- player) node))
+          )
+          (t(let* (
+                    (piece (piece-input))    ;!
+                    (indexes (move-input))  ;!
+                    (move (get-child node indexes piece player))
+                  )
+              (progn
+                  (log-file solution-nd player)
+                  (format t "Jogou a peca ~a na posicao (~a , ~a)~%" piece (first indexes) (second indexes))
+                  (human-vs-computer max-time (- player) move)
+              ) 
+            )
+          )
+        )
+      )
+      (t                                                                                                       ; Computer 
+        (cond 
+          ((eval can-current-play) 
+            (progn  
+              (format t "~%~%________Computador Sem Jogadas________~%~%")
+              (human-vs-computer max-time (- player) node)
+            )
+          )
+          (t(let* (
+                    (solution-nd (negamax max-time node 1 player))
+                    (sol-node (get-solution-node solution-nd))
+                  )
+              (progn 
+                (log-file solution-nd player) 
+                (human-vs-computer max-time (- player) (make-node (node-state sol-node) nil (node-p1 sol-node) (node-p2 sol-node)))
+              )
+            )
+          )
+        )
+      ) 
+    )
+  )
+)
+```
+
+### [Piece-view](#piece-view)
+
+- A função _[piece-view](#piece-view)_ mostra o menu de escolha do tipo de peça a colocar. 
+
+```lisp
+(defun piece-view(pieces)
+  (prog 
+    (format t "~%___________________________________________________________")
+    (format t "~%\\           Escolha o tipo de peca a colocar              /")
+    (cond ((> (car pieces) 0)
+    (format t "~%/                     1 - peca A                          \\"))
+    ((> (second pieces) 0)
+    (format t "~%\\                    2 - peca B                           /"))
+      ((> (third pieces) 0)
+    (format t "~%\\                    3 - peca C1                         \\")
+    (format t "~%/                     4 - peca C2                          /")))
+    (format t "~%/_________________________________________________________\\~%~%>")
+  )
+)
+```
+
+#### [Run-h-vs-c](#run-h-vs-c)
+
+- A função _[run-h-vs-c](#run-h-vs-c)_ inicia o jogo Humano contra Computador, utilizando como função auxiliar _[human-vs-computer](#human-vs-computer)_.
+
+```lisp
+(defun run-h-vs-c() 
+  (let* ((starter (get-starter)) (starter-val (cond ((= 1 starter) 1) (t -1) )) (max-time (get-time-limit)))
+    (progn
+      (log-header max-time)
+      (human-vs-computer max-time starter-val)
+    ) 
+  )
+)
+```
+
+#### [Piece-input](#piece-input)
+
+- A função _[piece-input](#piece-input)_ recebe a peça a utilizar pelo utilizador.
+
+```lisp
+(defun piece-input(node player &optional (pieces (pieces-list node player)))
+    (prog
+        (piece-view pieces)
+        (let (option (read))
+          (cond 
+            ((or (not (numberp option)) (< 1 option) (> 4 option)) 
+              (progn 
+                (format t "~% __________________________________________________________")
+                (format t "~%/                 Escolha uma opcao valida                /") 
+                (format t "~%__________________________________________________________~%")
+                (piece-input node player pieces)
+              ) 
+            )
+            (t 
+              (cond 
+                ((and (= 1 option) (> (first pieces) 0)) 'piece-a) 
+                ((and (= 2 option) (> (second pieces) 0)) 'piece-b) 
+                ((and (= 3 option) (> (third pieces) 0)) 'piece-c-1) 
+                ((and (= 4 option) (> (third pieces) 0)) 'piece-c-2) 
+                (t (progn 
+                  (format t "~% __________________________________________________________")
+                  (format t "~%/                 Escolha uma opcao valida                /") 
+                  (format t "~%__________________________________________________________~%")
+                  (piece-input node player pieces)
+                ))
+              )
+            )
+          )
+        )
+    )
+)
+```
+
+#### [Move-view](#move-view)
+
+- A função _[move-view](#move-view)_ mostra uma mensagem, que pede ao tulizador para inserir a posição do tabuleiro que deseja inserir a peça.
+
+```lisp
+(defun move-view(moves &optional (first-time t) (piece-numb 1) &aux (move (car moves)))
+  (cond
+    ((null moves) (format t "~%__________________________________________________________~%"))
+    (t (progn 
+      (cond 
+        ((eval first-time)
+          (progn 
+          (format t "~%___________________________________________________________")
+          (format t "~%\\               Escolha a posicao da peca                /")
+          (format t "~%/                                                        \\")
+          )
+        )
+      )
+          (format t "~%\\                    ~a - (~a , ~a)                     /" piece-numb (first move) (second move))
+      (move-view (cdr moves) nil )  
+    ))
+  )
+)
+```
+
+#### [Move-input](#move-input)
+
+- A função _[move-input](#move-input)_ recebe a posição que o utilizador deseja inserir a peça no tabuleiro.
+
+```lisp
+(defun move-input(node piece player)
+  (let* (
+          (pieces (pieces-list node player))
+          (state (node-state node))
+          (moves (possible-moves pieces piece state player))
+        )
+    (progn 
+      (move-view moves)
+      (let (option (read))
+        (cond 
+          ((or (not (numberp option)) (< option 1) (> option (length moves)))
+          (progn 
+                  (format t "~% __________________________________________________________")
+                  (format t "~%/                 Escolha uma opcao valida                /") 
+                  (format t "~%__________________________________________________________~%")
+                  (move-input node piece player)
+          )
+        )
+        (t (nth (1- option) moves))
+      )
+    )
+  )
+)
+```
+
+#### [Computer-only](#computer-only)
+
+```lisp
+(defun computer-only(max-time player &optional (node (make-node (empty-board))))
+  (let* (
+          (c1-moves    (expand-node node (operations) 1))
+          (c1-pieces   (pieces-list node 1))
+          (can-c1-play (or (null c1-moves) (= 0 (apply '+ c1-pieces))))        ; t = can't play
+          (c2-moves    (expand-node node (operations) -1))
+          (c2-pieces   (pieces-list node -1))
+          (can-c2-play (or (null c2-moves) (= 0 (apply '+ c2-pieces))))        ; t = can't play
+          (can-current-play (cond ((= player 1) can-c1-play) (t can-c2-play)))  ; t = can't play
+          ;(player-numb (cond ((= player 1) 1) (t 2)))
+        )
+    (cond 
+      ((and can-c1-play can-c2-play) (log-footer node))                            ; endgame (+ log.dat)
+      (t 
+        (cond 
+          ((eval can-current-play) 
+            (progn  
+              (format t "~%~%________Sem Jogadas________~%~%")
+              (computer-only max-time (- player) node)
+            )
+          )
+          (t(let* (
+                    (solution-nd (negamax max-time node 1 player))
+                    (sol-node (get-solution-node solution-nd))
+                  )
+              (progn 
+                (log-file solution-nd player) 
+                (computer-only max-time (- player) (make-node (node-state sol-node) nil (node-p1 sol-node) (node-p2 sol-node)))
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+)
+```
+
+#### [Run-computer-only](#run-computer-only)
+
+```lisp
+(defun run-computer-only()
+  (let ((max-time (get-time-limit)))
+    (progn 
+      (log-header max-time)
+      (computer-only max-time 1)
+    )
+  )
+)
+```
+
+### **[Menus](#menus)**
+
+#### [Init-menu](#init-menu)
+
+- A função _[init-menu](#init-menu)_ mostra o menu inicial do jogo.
+
+```lisp
+(defun init-menu()
+    (format t "~%___________________________________________________________")
+    (format t "~%\\                      BLOKUS DUO                         /")
+    (format t "~%/                                                         \\")
+    (format t "~%\\     1 - Humano vs Computador                            /")
+    (format t "~%/       2 - Computador vs Computador                      \\")  
+    (format t "~%\\     0 - Sair                                            /")
+    (format t "~%/_________________________________________________________\\~%~%>")
+)
+```
+
+#### [Start](#start)
+
+- A função _[start](#start)_  dá inicio ao jogo, mostrando o menu inicial.
+
+```lisp
+(defun start()
+    (init-menu)
+    (let ((option (read)))
+      (if (and (numberp option) (>= option 0) (<= option 2)) 
+        (cond
+          ((equal option 1) (get-starter))
+          ((equal option 2) (run-computer-only)) 
+          ((equal option 0) (format t "~%Adeus!"))
+        ) 
+
+        (progn (print "Opção inválida. Tente novamente") (start))
+      )
+    )
+)
+```
+
+#### [Start-view](#start-view)
+
+- A função _[start-view](#start-view)_ mostra o menu de escolha de quem inicia o jogo, humano (utilizador) ou computador.
+
+```lisp
+(defun starter-view()
+    (format t "~%_________________________________________________________")
+    (format t "~%\\                     BLOKUS DUO                        /")
+    (format t "~%/                  Quem começa primeiro?                \\")
+    (format t "~%\\                   (tipo das peças)                    /")
+    (format t "~%/     1 - Humano (1)                                    \\")
+    (format t "~%\\     2 - Computador (2)                                /")
+    (format t "~%/     0 - Voltar                                        \\")
+    (format t "~%\\_______________________________________________________/~%~%> ")
+)
+```
+
+#### [Get-starter](#get-starter)
+
+- A função _[get-starter](#get-starter)_
+
+```lisp
+(defun get-starter()
+  (starter-view)
+  (let ((option (read)))
+    (cond
+      ((or (< option 0) (> option 2)) (progn (format t "Insira uma opcao valida") (get-starter)))
+      ((= option 0) (start))
+      (t option)
+    )
+  )
+)
+```
+
+#### [Time-limit-view](#time-limit-view)
+
+- A função _[time-limit-view](#time-limit-view)_ mostra a mensagem para o utilizador escolher o tempo limite da jogada do computador.
+
+```lisp
+(defun time-limit-view()
+  (format t "~%_________________________________________________________")
+  (format t "~%\\                      BLOKUS DUO                       /")
+  (format t "~%/          Defina o tempo limite para uma jogada        \\")
+  (format t "~%\\            do computador (1 - 20) segundos.           /")
+  (format t "~%\\                                                      \\")
+  (format t "~%/     0 - Voltar                                        /")
+  (format t "~%\\                                                     \\")
+  (format t "~%/_______________________________________________________/~%~%> ")
+)
+```
+
+#### [Get-time-limit](#get-time-limit)
+
+- A função _[get-time-limit](#get-time-limit)_ 
+
+```lisp
+(defun get-time-limit()
+  (progn (time-limit-view)
+    (let ((option (read)))
+      (cond 
+        ((= option 0) (start))
+        ((or (not (numberp option)) (< option 1) (> option 20)) (progn (format t "Insira uma opção válida") (get-time-limit)))
+        (t option)
+      )
+    )
+  )
+)
+```
+
+#### [Header](#header)
+
+- A função _[header](#header)_ 
+
+```lisp
+(defun header(stream max-time)
+  (format stream "~%----------------- INICIO -----------------~%max-time: ~a~%~%" max-time)
 )
 ```
 
 #### [Log-header](#log-header)
 
-- A função _[log-header](#log-header)_
+- A função _[log-header](#log-header)_ 
 
 ```lisp
-(defun log-header()
- (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create)
-          (format file "~%----------------- INICIO -----------------~%"))
+(defun log-header(max-time)
+  (progn 
+    (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create) (header file max-time))  
+    (header t max-time)
+  )     
 )
 ```
 
 #### [Log-file](#log-file)
 
-- A função _[log-file](#log-file)_
+- A função _[log-file](#log-file)_ 
 
 ```lisp
-(defun log-file())
+(defun log-file(solution-nd color)
+  (let* (
+        (player (cond ((= color 1) 1) (t 2)))
+        (node (get-solution-node solution-nd))
+        (move (last-move node color))
+        (visited-nodes (get-visited-nodes solution-nd))
+        (cuts (get-cuts solution-nd))
+        (alg-runtime (get-runtime solution-nd))
+      )
+    (progn 
+      (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create)
+        (log-stream file (node-state node) player (first move) (second move) visited-nodes cuts alg-runtime))
+      (log-stream t (node-state node) player (first move) (second move) visited-nodes cuts alg-runtime)
+    )
+  )
+)
 ```
 
-#### [Log-content](#log-content)
+#### [Log-stream](#log-stream)
 
-- A função _[log-content](#log-content)_
+- A função _[log-stream](#log-stream)_ 
+
 
 ```lisp
-(defun log-content())
+(defun log-stream (stream state player piece indexes nodes-visited cuts runtime)
+  (progn 
+    (format-board state stream)
+    (format stream "~%Jogador ~a ~%" player)
+    (format stream "Jogou a peca ~a na posicao (~a , ~a)~%" piece (first indexes) (second indexes))
+    (format stream "Nos Analisados: ~a ~%" nodes-visited)
+    (format stream "Numero de Cortes: ~a ~%" cuts)
+    (format stream "Tempo de Execucao: ~a ~%" runtime)
+  )                       
+)
+```
+
+#### [Log-footer](#log-footer)
+
+- A função _[log-footer](#log-footer)_ 
+
+
+```lisp
+(defun log-footer(node)
+  (progn
+    (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create) (log-winner node file))
+    (log-winner node t)
+  )
+) 
 ```
 
 #### [Log-winner](#log-winner)
 
-- A função _[log-winner](#log-winner)_
+- A função _[log-winner](#log-winner)_ 
+
 
 ```lisp
-(defun log-winner())
+(defun log-winner(node stream)
+  (let ((pieces-p1 (pieces-list node 1)) (pieces-p2 (pieces-list node -1)))
+    (format stream    "~%__________________________________________________________")
+    (format stream "~%\\                      BLOKUS DUO                        /")
+    (format stream "~%/                                                        \\")
+    (format stream "~%\\                       Vencedor                         /")
+    (format stream "~%/                           ~a                     \\" (winner node))
+    (format stream "~%\\                                                        /")
+    (format stream "~%/    Jogador 1: ~a pontos  vs  Jogador 2: ~a pontos      \\" (count-points pieces-p1) (count-points pieces-p2)) 
+    (format stream "~%\\      pecas: ~a            pecas: ~a         /" pieces-p1 pieces-p2)
+    (format stream "~%/                                                        \\")
+    (format stream "~%\\________________________________________________________/~%~%> ")
+  )
+)
 ```
 
-### **[Formatters](#formatters)**
+## **[Formatters](#formatters)**
 
 #### [Format-board-line](#format-board-line)
 
-- A função _[format-board-line](#format-board-line)_
+- A função _[format-board-line](#format-board-line)_ 
 
 ```lisp
-(defun format-board-line (board)
+(defun format-board-line (board &optional (stream t))
   (cond
    ((null (first board)) "")
-   (t (format nil "~a~%" (first board)))
+   (t (format stream "~a~%" (first board)))
    )
 )
 ```
 
 #### [Format-board](#format-board)
 
-- A função _[format-board](#format-board)_
+- A função _[format-board](#format-board)_ 
 
-```lisp
-(defun format-board (board)
+```lisp 
+(defun format-board (board &optional (stream t))
   (cond
    ((null board) "")
-   (t (format nil "~a~a" (format-board-line board) (format-board (cdr board))))
+   (t (format stream "~&" (append(format-board-line board stream) (format-board (cdr board) stream))))
    )
-)
+)  
 ```
 
-#### [Format-solution-path](#format-solution-path)
-
-- A função _[format-solution-path](#format-solution-path)_
-
-```lisp
-(defun format-solution-path (path)
-  (cond
-   ((null path) "")
-   (t (format nil "~a~%~a" (format-board (first (first path))) (format-solution-path (cdr path))))
-   )
-)
-```
-
-#### [Current-time](#current-time)
-
-- A função _[current-time](#current-time)_ devolve uma lista com a hora atual no formato (**horas minutos segundos**).
-
-```lisp
-(defun current-time()
-  (get-internal-real-time)
-)
-```
-
----
-
-## **[Estatisticas](#estatisticas)**
-
-| Tabuleiro |         Algoritmo          | Nós Gerados | Nós Expandidos | Penetrância | Fator de Ramificação | Duração |
-| :-------: | :------------------------: | :---------: | :------------: | :---------: | :------------------: | :-----: |
-|    `A`    |            BFS             |     11      |       3        |    3/11     |         11/2         |    5    |
-|    `A`    |            DFS             |     11      |       8        |    3/11     |         11/2         |  27521  |
-|    `A`    | A\* - Heurística Fornecida |      6      |       3        |     1/2     |          3           |  2407   |
-|    `A`    |  A\* - Heurística Criada   |      6      |       3        |     1/2     |          3           |  4437   |
-|    `B`    |            BFS             |    11553    |      936       |   2/3851    |       11553/2        |  2777   |
-|    `B`    |            DFS             |    9468     |      5895      |   1/1578    |       41185/2        |  26882  |
-|    `B`    | A\* - Heurística Fornecida |     43      |       6        |    6/43     |         43/2         |  1249   |
-|    `B`    |  A\* - Heurística Criada   |     43      |       6        |    6/43     |         43/2         |  2476   |
-|    `C`    |            BFS             |      -      |       -        |      -      |          -           |    -    |
-|    `C`    |            DFS             |      -      |       -        |      -      |          -           |    -    |
-|    `C`    | A\* - Heurística Fornecida |     75      |       8        |    8/75     |         75/2         |  1498   |
-|    `C`    |  A\* - Heurística Criada   |     75      |       8        |    8/75     |         75/2         |   921   |
-|    `D`    |            BFS             |      -      |       -        |      -      |          -           |    -    |
-|    `D`    |            DFS             |      -      |       -        |      -      |          -           |    -    |
-|    `D`    | A\* - Heurística Fornecida |     145     |       10       |    2/29     |        145/2         |  1245   |
-|    `D`    |  A\* - Heurística Criada   |     145     |       10       |    2/29     |        145/2         |   961   |
-|    `E`    |            BFS             |      -      |       -        |      -      |          -           |    -    |
-|    `E`    |            DFS             |      -      |       -        |      -      |          -           |    -    |
-|    `E`    | A\* - Heurística Fornecida |     216     |       13       |   13/216    |         108          |  1073   |
-|    `E`    |  A\* - Heurística Criada   |     216     |       13       |   13/216    |         108          |  1628   |
-|    `F`    |            BFS             |      -      |       -        |      -      |          -           |    -    |
-|    `F`    |            DFS             |      -      |       -        |      -      |          -           |    -    |
-|    `F`    | A\* - Heurística Fornecida |     327     |       19       |   19/327    |        327/2         |  1017   |
-|    `F`    |  A\* - Heurística Criada   |     327     |       19       |   19/327    |        327/2         |   940   |
-
-- **_\- significa que a memória heap do \_lispWorks_ chegou ao limite.\_**
