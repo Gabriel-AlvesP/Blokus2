@@ -48,9 +48,9 @@ Para uma melhor organização do projeto, este foi divido em três ficheiros.
 
 ## **[Puzzle](#puzzle)**
 
-Este ficheiro contém o código relacionado com todo o problema, sendo assim responsável, por todos os tabuleiros, todas as verificações de restrições de inserção de peças no tabuleiro, inserção das mesmas, verificação das possíveis posições e contagem das peças.
+Este ficheiro contém o código relacionado com todo o problema, sendo assim responsável, todas as verificações de restrições de inserção de peças no tabuleiro, inserção das mesmas, verificação das possíveis posições e contagem das peças.
 
-Para uma melhor organização interna, o ficheiro foi dividido pelas seguintes secções, tabuleiros, funções secundárias, possíveis movimentos,peças, operadores e fim do jogo.
+Para uma melhor organização interna, o ficheiro foi dividido pelas seguintes secções, problemas, componentes do tabuleiro, funções secundárias, possíveis movimentos, operações com peças, verificações do tabuleiro e fim do jogo.
 
 ### **[Problemas](#problemas)**
 
@@ -63,27 +63,6 @@ De seguida, temos a função que retorna o tabuleiro utilizado.
 ;; [0] empty element/cell
 ;; [1] player one piece
 ;; [2] player two piece
-```
-
-```lisp
-;; test board
-(defun board-t()
-    ;A B C D E F G H I J K L M N
-  '((0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;1
-    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;2
-    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;3
-    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;4
-    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;5
-    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;6
-    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;7
-    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;8
-    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;9
-    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;10
-    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;11
-    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;12
-    (0 0 0 0 0 0 0 0 0 0 0 0 0 0) ;13
-    (0 0 0 0 0 0 0 0 0 0 0 0 0 0));14
-)
 ```
 
 ```lisp
@@ -116,7 +95,7 @@ De seguida, temos a função que retorna o tabuleiro utilizado.
 ```lisp
 (defun column(index board)
   "[index] must be a number between 0 and the board dimension"
-  (mapcar (lambda (x) (nth index x))  board)
+  (mapcar (lambda (x) (nth index x))  board) 
 )
 ```
 
@@ -140,9 +119,9 @@ As funções secundárias, são responsáveis pelas verificações nos vários e
 - A função _[empty-elemp](#empty-elemp)_, recebe por parâmetro, a linha, a coluna, o tabuleiro e opcionalmente, um valor inteiro a verficar. Retorna _true_ se um elemento for igual ao _val_ (por defeito é 0 - elemento vazio) e _nil_ caso contrário. Utiliza a função _[element](#element)_ para verificar a casa do tabuleiro.
 
 ```lisp
-(defun empty-elemp(row col board &optional (val 0))
+(defun empty-elemp(row col board &optional (val 0)) 
   "[row] and [col] must be numbers between 0 and the board dimension"
-  (cond
+  (cond 
   ((or (< row 0) (> row (1- (length board))) (< col 0) (> col (1-(length board)))) nil)
   ((= (element row col board) val) t)
   (t nil)
@@ -155,7 +134,7 @@ As funções secundárias, são responsáveis pelas verificações nos vários e
 - A função _[check-empty-elems](#check-empty-elems)_, verifica índices. Recebe por parâmetro, o tabuleiro, uma lista de índices e opcionalmente um valor inteiro a verificar. Retorna uma lista com _true_ ou _nil,_ dependendo se os **índices** estão **iguais** ao valor passado no **val** ou não. Utiliza a função _[empty-elemp](#empty-elemp)_ para verificar cada elemento.
 
 ```lisp
-(defun check-empty-elems(board indexes-list &optional (val 0))
+(defun check-empty-elems(board indexes-list &optional (val 0)) 
   "Each element(list with row and col) in indexes-list
    must contain a valid number for the row and column < (length board)"
   (mapcar (lambda (index) (empty-elemp (first index) (second index) board val)) indexes-list)
@@ -167,9 +146,9 @@ As funções secundárias, são responsáveis pelas verificações nos vários e
 - A função _[replace-pos](#replace-pos)_, substitui uma posição no tabuleiro pelo parâmetro _val._ Esta recebe por parâmetro, a linha, a coluna e opcionalmente um valor, que por defeito é "**1"** e retorna uma linha (lista) com o elemento na posição da coluna, substituído pelo _val_.
 
 ```lisp
-(defun replace-pos (col row &optional (val 1))
+(defun replace-pos (col row &optional (val 1)) 
     "[Col] (column) must be a number between 0 and the row length"
-    (cond
+    (cond 
      ((null row) nil)
      ((= col 0) (cons val (replace-pos (1- col) (cdr row) val)))
      (t (cons (car row) (replace-pos (1- col) (cdr row) val)))
@@ -182,9 +161,9 @@ As funções secundárias, são responsáveis pelas verificações nos vários e
 - A função _[replace-](#replace-)_, substitui um elemento no tabuleiro. Esta recebe por parâmetro, a linha, a coluna, o tabuleiro e opcionalmente um valor inteiro (por defeito é 1). Retorna o tabuleiro com o elemento substituído, pelo valor passado por parâmetro, ou por "**1**" caso não tenha sido passado nenhum valor. Utiliza a função _[replace-pos](#replace-pos)_ para substituir o valor no elemento pretendido.
 
 ```lisp
-(defun replace- (row col board &optional (val 1))
+(defun replace- (row col board &optional (val 1)) 
   "[Row] and [column] must be a number between 0 and the board length"
-  (cond
+  (cond  
    ((null board) nil)
    ((= row 0) (cons (replace-pos col (car board) val) (replace- (1- row) col (cdr board) val)))
    (t (cons (car board) (replace- (1- row) col (cdr board) val)))
@@ -197,10 +176,10 @@ As funções secundárias, são responsáveis pelas verificações nos vários e
 - A função _[replace-multi-pos](#replace-multi-pos)_, substitui várias posições no tabuleiro. Esta recebe por parâmetro uma lista com todas as posições a substituir, o tabuleiro e opcionalmente um valor inteiro (por defeito é 1), retorna o tabuleiro com todos os elementos substituídos pelo valor **"1"**, ou pelo valor passado por parâmetro ao _val_. Utiliza a função _[replace-](#replace-)_ para substituir cada elemento.
 
 ```lisp
-(defun replace-multi-pos (pos-list board &optional (val 1))
-    (cond
+(defun replace-multi-pos (pos-list board &optional (val 1)) 
+    (cond 
       ((null pos-list) board)
-      (t (replace-multi-pos (cdr pos-list) (replace- (first (car pos-list)) (second (car pos-list)) board val)))
+      (t (replace-multi-pos (cdr pos-list) (replace- (first (car pos-list)) (second (car pos-list)) board val) val))
     )
 )
 ```
@@ -224,9 +203,12 @@ Nesta secção as funções são responsáveis por verificar, a adjacência entr
 - A função _[check-adjacent-elems](#check-adjacent-elems)_ verifica a adjacência das peças. Esta recebe por parâmetro, a linha, a coluna, o tabuleiro e uma peça. Se a peça for adjacente a outra, retorna _nil,_ caso contrário retorna _true_.
 
 ```lisp
-(defun check-adjacent-elems (row col board piece)
+(defun check-adjacent-elems (row col board piece val)
+"
+[val] must have the player piece value
+"
   (cond
-   ((eval (cons 'or (check-empty-elems board (piece-adjacent-elems row col piece) 1))) nil)
+   ((eval (cons 'or (check-empty-elems board (piece-adjacent-elems row col piece) val))) nil)
    (t t)
    )
 )
@@ -239,7 +221,7 @@ Nesta secção as funções são responsáveis por verificar, a adjacência entr
 ```lisp
 (defun check-corner (piece-format &optional (corner 0))
   (let ((list-index (car piece-format)))
-    (cond
+    (cond 
       ((null piece-format) nil)
       ((= corner (first list-index) (second list-index)) 0)
       (t (check-corner (cdr piece-format) corner))
@@ -253,34 +235,34 @@ Nesta secção as funções são responsáveis por verificar, a adjacência entr
 - A função _[force-move](#force-move)_, filtra as possíveis jogadas, se o primeiro elemento do canto superior esquerdo estiver vazio, isto para o **Jogador 1**, caso seja o **Jogador 2**, verifica o canto inferior direito, só permite peças nesse elemento, caso não esteja vazio, só permite movimentos que colocam peças em contacto com outras (apenas nos cantos). Esta recebe por parâmetro, a linha, a coluna, o tabuleiro e a peça, retorna _true_ se o movimento for permitido e _nil_ caso contrário.
 
 ```lisp
-(defun force-move (row col board piece &optional (corner2check 0) (pieces-val 1))
+(defun force-move (row col board piece &optional (corner2check 0) (pieces-val 1)) 
 "
 [corner2check] player1 = 0 || player2 = 13
-[pieces-val]   player1 = 1 || player2 = 2
+[pieces-val]   player1 = 1 || player2 = 2   
 "
   (let ((corner-index (check-corner (piece-taken-elems row col piece) corner2check)) ; [corner-index] 0 if player's trying to put a piece in his corner || nil if he is not
-        (corner-state (element corner2check corner2check board))                     ; [corner-state] 0 if the player corner is empty || 1 or 2 if it already has a piece
+        (corner-state (element corner2check corner2check board))                     ; [corner-state] 0 if the player corner is empty || 1 or 2 if it already has a piece 
        )
-   (cond
+   (cond 
     ((and (= corner-state  0) (null corner-index)) nil)
     ((and (= corner-state 0 corner-index)) t)
     ((eval (cons 'or (check-empty-elems board (piece-corners-elems row col piece) pieces-val))) t)
     (t nil)
-   )
+   ) 
   )
 )
 ```
 
 #### [Filter-player-move](#piece-player-move)
 
-- A função _[piece-player-move](#piece-player-move)_ recebe por parâmetro o jogador, a linha, a coluna, o tabuleiro e a peça. Com esta informação filtra as jogadas do utilizador, caso seja o **Jogador 1**, este deverá jogar no canto superior esquerdo e o valor da peça será 1, para o **Jogador 2** a peça terá o valor 2 e este terá que jogar no canto inferior direito. Retorna o valor da função _[force-move](#force-move)_, _true_ se a jogada for possível e _nil_ caso contrário.
+- A função _[filter-player-move](#filter-player-move)_ recebe por parâmetro o jogador, a linha, a coluna, o tabuleiro e a peça. Com esta informação filtra as jogadas do utilizador, caso seja o **Jogador 1**, este deverá jogar no canto superior esquerdo e o valor da peça será 1, para o **Jogador 2** a peça terá o valor 2 e este terá que jogar no canto inferior direito. Retorna o valor da função _[force-move](#force-move)_, _true_ se a jogada for possível e _nil_ caso contrário.
 
 ```lisp
 (defun filter-player-move (player row col board piece)
 "
 [player] player1 = 1 || player2 = -1
 "
-  (cond
+  (cond 
     ((equal player 1) (force-move row col board piece))
     ((equal player -1) (force-move row col board piece 13 2))
     (t nil)
@@ -297,36 +279,22 @@ Nesta secção as funções são responsáveis por verificar, a adjacência entr
 "
 [player] player1 = 1 || player2 = -1
 "
-  (cond
+(let ((pieces-val (cond ((= player 1) 1) (t 2))))
+  (cond 
     ((= 0 (pieces-left-numb pieces-list piece)) nil)
     ((or (> row (length board)) (< row 0) (< col 0) (> col (length board))) nil)
     ((not (filter-player-move player row col board piece)) nil)
-    ((not (check-adjacent-elems row col board piece)) nil)
+    ((not (check-adjacent-elems row col board piece pieces-val)) nil)
     ((eval (cons 'and (check-empty-elems board (piece-taken-elems row col piece))))t)
     (t nil)
   )
+)
 )
 ```
 
 ### **[Possíveis movimentos](#moves)**
 
 As funções que verificam os possíveis movimentos, são responsáveis pelas verificações que melhoram a eficiência do algoritmo, estas evitam a verificação de posições desnecessárias do tabuleiro.
-
-#### [Get-possible-indexes](#get-possible-indexes)
-
-- A função _[get-possible-indexes](#get-possible-indexes)_ reduz os possíveis movimentos por parte do utilizador no tabuleiro, em vez de verificar o tabuleiro por completo sem necessidade, esta função apenas verifica os cantos das peças colocadas por um jogador. Retorna uma lista com os índices (coordenadas) de todos os cantos, das peças colocadas pelo jogador.
-
-```lisp
-(defun get-possible-indexes (player-moves &aux (first-elem (car player-moves))  (indexes (second first-elem)))
-"
-[player-moves] (('piece-b (0 0)) ('piece-b (3 3)))) => (player (list (list piece (list row col)) (list piece (list row col)) )
-"
-  (cond
-    ((null player-moves) nil)
-    (t (append (piece-corners-elems (car indexes) (second indexes) (car first-elem)) (get-possible-indexes (cdr player-moves))))
-  )
-)
-```
 
 #### [Filter-possible-moves](#filter-possible-moves)
 
@@ -338,20 +306,36 @@ As funções que verificam os possíveis movimentos, são responsáveis pelas ve
 )
 ```
 
-#### [Possible-moves](#possible-moves)
+#### [All-spaces](#all-spaces)
 
-- A função [_possible-moves_](#possible-moves), verifica todas as posições do tabuleiro, que a peça pode ser colocada. Esta recebe por parâmetro uma lista com todas as peças, uma peça e um tabuleiro. Retorna uma lista com índices para todos os movimentos possíveis com uma peça.
+- A função _[all-spaces](#all-spaces)_ verifica onde a peça pode ser colocada no tabuleiro a partir de uma lista de índices. Retorna uma lista com todos os movimentos possíveis com base em todos os índices fornecidos. 
 
 ```lisp
-(defun possible-moves(player-node piece board)
-"
-[player-node] (1 (('piece-b (0 0)) ('piece-b (3 3)))) => (player (list (list piece (list row col)) (list piece (list row col)) ))
-"
-  (let ((possible-indexes (get-possible-indexes (second player-node))) (pieces-list (third player-node)))
-    (cond
-      ((null possible-indexes) (filter-possible-moves pieces-list piece board (list '(0 0) '(13 13) '(11 12) '(12 12)) (car player-node)))
-      (t(filter-possible-moves pieces-list piece board possible-indexes (car player-node)))
-    )
+(defun all-spaces(pieces-list piece board indexes-list player)
+  (remove-nil(mapcar (lambda (index) (cond ((can-placep pieces-list board (first index) (second index) piece player) index) (t nil))) indexes-list))
+)
+```
+
+#### [Possible-moves](#possible-moves)
+
+- A função _[possible-moves](#possible-moves)_ verifica onde a peça pode ser colocada no tabuleiro. Retorna uma lista com índices para todos os movimentos possíveis dessa mesma peça, ordenada de cima para baixo.
+
+```lisp
+(defun possible-moves(pieces-list piece board player)
+  (reverse (all-spaces pieces-list piece board (check-all-board board (1- (length board)) (1- (length (car board)))) player))
+)
+```
+
+#### [Check-all-board](#check-all-board)
+
+- A função _[check-all-board](#check-all-board)_ retorna uma lista com todos os índices do tabuleiro
+
+```lisp
+(defun check-all-board(board row col)
+  (cond 
+    ((< row 0) nil)
+    ((< col 0) (check-all-board board (1- row) (1- (length board))))
+    (t (cons (list row col) (check-all-board board row (1- col))))
   )
 )
 ```
@@ -361,15 +345,15 @@ As funções que verificam os possíveis movimentos, são responsáveis pelas ve
 - A função _[piece-taken-elems](#piece-taken-elems)_, recebe por parâmetro, a linha, a coluna e uma peça. Retorna uma lista com todos os elementos, que essa mesma peça ocupa no tabuleiro.
 
 ```lisp
-(defun piece-taken-elems (row col piece)
-  (cond
-   ((equal piece 'piece-a) (cons (list row col) nil))
-   ((equal piece 'piece-b)
-    (list (list row col) (list row (1+ col)) (list (1+ row) col) (list (1+ row) (1+ col)))
+(defun piece-taken-elems (row col piece) 
+  (cond 
+   ((equal piece 'piece-a) (cons (list row col) nil))                                            
+   ((equal piece 'piece-b)                                  
+    (list (list row col) (list row (1+ col)) (list (1+ row) col) (list (1+ row) (1+ col)))         
     )
-   ((equal piece 'piece-c-2)
-    (list (list row col) (list (1+ row) col) (list (1+ row) (1+ col)) (list (+ row 2) (1+ col)))
-    )
+   ((equal piece 'piece-c-2) 
+    (list (list row col) (list (1+ row) col) (list (1+ row) (1+ col)) (list (+ row 2) (1+ col)))  
+    ) 
    ((equal piece 'piece-c-1) (list (list row col) (list row (1+ col)) (list (1- row) (1+ col)) (list (1- row) (+ col 2))))
    (t nil)
    )
@@ -385,7 +369,7 @@ As funções que verificam os possíveis movimentos, são responsáveis pelas ve
   (cond
    ((equal piece 'piece-a) (list (list row (1+ col)) (list row (1- col)) (list (1+ row) col) (list (1- row) col)))
    ((equal piece 'piece-b) (list (list row (1- col)) (list (1+ row) (1- col)) (list (1- row) col) (list (1- row) (1+ col)) (list (+ row 2) col) (list (+ row 2) (1+ col)) (list row (+ col 2)) (list (1+ row) (+ col 2))))
-   ((equal piece 'piece-c-1)
+   ((equal piece 'piece-c-1) 
     (list (list row (- col 2)) (list (1- row) col) (list (- row 2) (1+ col)) (list (- row 2) (+ col 2)) (list (1- row) (+ col 3)) (list (1+ row) col) (list (1+ row) (1+ col)) (list row (+ col 2))))
    ((equal piece 'piece-c-2) (list (list (1- row) col) (list row (1- col)) (list row (1+ col)) (list (1+ row) (1- col)) (list (1+ row) (+ col 2)) (list (+ row 2) col) (list (+ row 2) (+ col 2)) (list (+ row 3) (1+ col))))
    (t nil)
@@ -417,13 +401,15 @@ As funções que verificam os possíveis movimentos, são responsáveis pelas ve
 - A função _[insert-piece](#insert-piece)_, insere peças no tabuleiro. Esta recebe por parâmetro uma lista com os elementos a ocupar, a linha, a coluna, o tabuleiro, uma peça e opcionalmente o jogador, que por defeito é o **Jogador 1**. Com recurso à função _[can-placep](#can-placep)_, retorna o tabulerio caso seja possível inserir a peça no mesmo, ou _nil_ caso contrário. Utiliza ainda as funções _[replace-multi-pos](#replace-multi-pos)_ e _[piece-taken-elems](#piece-taken-elems)_ para inserir a as peças com a suas formas corretas, respetivamente.
 
 ```lisp
-(defun insert-piece (pieces-list row col board piece &optional (player 1))
+(defun insert-piece (pieces-list row col board piece &optional (player 1)) 
 "
 [player] player1 = 1 || player2 = -1
 "
-  (cond
-    ((null (can-placep pieces-list board row col piece player)) nil)
-    (t (replace-multi-pos (piece-taken-elems row col piece) board)))
+  (let ((val (cond ((= player 1) 1) (t 2))))
+    (cond 
+      ((null (can-placep pieces-list board row col piece player)) nil)
+      (t (replace-multi-pos (piece-taken-elems row col piece) board val)))
+  )
 )
 ```
 
@@ -433,7 +419,7 @@ As funções que verificam os possíveis movimentos, são responsáveis pelas ve
 
 ```lisp
 (defun pieces-left-numb(pieces-list piece-type)
-  (cond
+  (cond 
     ((equal piece-type 'piece-a)(first pieces-list))
     ((equal piece-type 'piece-b) (second pieces-list))
     (t (third pieces-list))
@@ -447,7 +433,7 @@ As funções que verificam os possíveis movimentos, são responsáveis pelas ve
 
 ```lisp
 (defun remove-used-piece(pieces-list piece-type)
-  (cond
+  (cond 
     ((equal piece-type 'piece-a) (list (1- (first pieces-list)) (second pieces-list) (third pieces-list)))
     ((equal piece-type 'piece-b) (cadr pieces-list) (list (first pieces-list) (1-(second pieces-list)) (third pieces-list)))
     (t (list (first pieces-list) (second pieces-list) (1- (third pieces-list))))
@@ -479,7 +465,7 @@ Nesta secção definimos as funções referentes à quantidade de peças iniciai
 
 ```lisp
 (defun operations()
-  (list 'piece-a 'piece-b 'piece-c-1 'piece-c-2)
+  (list 'piece-b 'piece-c-1 'piece-c-2 'piece-a)
 )
 ```
 
@@ -489,6 +475,11 @@ Nesta secção definimos as funções referentes à quantidade de peças iniciai
 
 ```lisp
 (defun piece-a (pieces-list index board player)
+"
+[pieces-list] list with the number of each piece left
+[index] list with row and column
+[player] player playing  player1 = 1 || player2 = -1
+"
   (insert-piece pieces-list (first index) (second index) board 'piece-a player)
 )
 ```
@@ -504,7 +495,7 @@ Nesta secção definimos as funções referentes à quantidade de peças iniciai
 #### [Piece-c-1](#piece-c1)
 
 ```lisp
-(defun piece-c-1 (pieces-list index board player)
+(defun piece-c-1 (pieces-list index board player) 
   (insert-piece pieces-list (first index) (second index) board 'piece-c-1 player)
 )
 ```
@@ -519,13 +510,39 @@ Nesta secção definimos as funções referentes à quantidade de peças iniciai
 
 ### **[Final do Jogo](#endgame)**
 
+#### [Get-h](#get-h)
+
+- A função _[get-h](#get-h)_ retorna o valor da heurística.
+
+```lisp
+(defun get-h(node color)
+  (- (count-points (pieces-list node color)) (count-points (pieces-list node (- color))))
+)
+```
+
 #### [Count-points](#count-points)
 
 - A função _[Count-points](#counts-points)_ recebe por parâmetro e retorna o valor da pontução.
 
 ```lisp
 (defun count-points (pieces-list)
-  (+ (first pieces-list) (* (second pieces-list) 4) (* (third pieces-list) 4))
+  (+ (- 10 (first pieces-list)) (* (- 10 (second pieces-list)) 4) (* (- 15 (third pieces-list)) 4))
+)
+```
+
+#### [Winner](#winner)
+
+- A função _[winner](#winner)_ recebe por parâmetro o nó, define o vencedor, usa a função [count-points](#count-points). Retorna o vencedor.
+
+```lisp
+(defun winner(node)
+	(let ((p1-points (count-points (pieces-list node 1))) (p2-points (count-points (pieces-list node -1))))
+		(cond 
+		((> p1-points p2-points) 'Jogador1)
+		((< p1-points p2-points) 'Jogador2)
+		(t 'Empate)
+		)
+	)
 )
 ```
 
