@@ -15,7 +15,7 @@
 "
 )
 
-(defun human-vs-computer())
+(defun human-vs-computer(max-time ))
 (defun computer-only())
 
 ;;; Menus + Views (and its operations)

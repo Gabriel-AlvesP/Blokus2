@@ -116,50 +116,49 @@
 ; - o numero de nos analisados
 ; - o numero de cortes efetuados (de cada tipo)
 
-"
-[node] 
-[max-time] input - limit time for an execution
-[alpha] 
-[beta]
-[color] 
-[start-time] timestamp - Execution start timestamp
-[cuts-number] performance stats - returns the number of cuts executed
-[nodes-visited] performance stats - returns the number of nodes visited
-"
-;; negamax
-;; used auxiliary functions (empty-board)
-(defun negamax (max-time
-			&optional
-				(node (make-node (empty-board) nil (player-info 1) (player-info -1) most-negative-fixnum))
-				(color 1)
-				(alpha most-negative-fixnum)
-				(beta most-positive-fixnum)
-				(nodes-visited 1)
-				(cuts-number 0)
-				(start-time (get-internal-real-time))
-				(depth 7)
-				)
-	(let ((children (order-nodes (expand-node node (operations) color))))                                
-		(cond 
-			((or (= depth 0) (null children) (> (runtime start-time) max-time)) (final-node-f node color))
-			(t (-negamax max-time node children color alpha beta nodes-visited cuts-number start-time depth))
-		)
-	)
-)
 
-(defun -negamax(max-time parent children color alpha beta nodes-visited cuts-number start-time depth)
-	(cond 
-	((= (length children) 1) (negamax max-time (car children) (- color) (- beta) (- alpha) (1+ nodes-visited) cuts-number start-time (1- depth)))
-	(t (let* ((node (negamax max-time (car children) (- color) (- beta) (- alpha) (1+ nodes-visited) cuts-number start-time (1- depth))) 
-				(best-node (max-f parent node))
-				(alpha (max alpha (node-value best-node)))
-			 )
-		(cond 
-			((>= alpha beta) parent)
-			(t (-negamax max-time parent (cdr children) color alpha beta nodes-visited cuts-number start-time depth))
-		)
-		))
-	)
+
+; --------------------------------------- ; 
+(defun negamax(max-time                 
+               &optional 
+               (node (make-node (empty-board) nil (player-info 1) (player-info -1) most-negative-fixnum))
+               (color 1)
+               (max-depth 6)
+               (alpha most-negative-fixnum) 
+               (beta most-positive-fixnum) 
+               (start-time (get-internal-real-time))
+               (visited-nodes 1)
+               (cuts 0)
+               )
+
+  (let* ((children (order-nodes (funcall #'expand-node node (operations) color))))
+    (cond
+     ((or (= max-depth 0) (null children) (>= (runtime start-time) max-time)) 
+      (solution-node (final-node-f node color) visited-nodes cuts start-time))
+     (t (negamax- node children max-time color max-depth alpha beta start-time visited-nodes cuts))
+     )
+    )
+  )
+
+(defun negamax-(parent children max-time color max-depth alpha beta start-time visited-nodes cuts)
+	(cond
+   		((= (length children) 1) 
+    		(negamax max-time (-f (car children)) (- color) (1- max-depth) (- beta) (- alpha) start-time (1+ visited-nodes) cuts))
+   		(t (let* (
+			(solution (negamax max-time (-f (car children)) (- color) (1- max-depth) (- beta) (- alpha) start-time (1+ visited-nodes) cuts))
+            (best-value (node-value (max-f (car solution) parent)))
+            (alpha (max alpha best-value))
+            (v-nodes (get-visited-nodes solution))       
+            (cuts-numb (get-cuts solution))
+            )
+      			(cond 
+	  				((>= alpha beta) (solution-node parent v-nodes (1+ cuts-numb) start-time))
+        			(t (negamax- parent (cdr children) max-time color max-depth alpha beta start-time v-nodes cuts-numb))
+    			)
+      		)
+    	
+   		)
+  	)
 )
 
 ; ---------------------------------------- ;
@@ -167,20 +166,20 @@
 
 ;; Solution node
 (defun solution-node(node visited-nodes cuts-number start-time)
-	(list node visited-nodes cuts-number (runtime start-time))
+	(list node (list visited-nodes cuts-number (runtime start-time)))
 )
 
 ;; solution
-(defun solution-get-node(sol-node) (car sol-node))
+(defun get-solution-node(sol-node) (car sol-node))
 
 ;; solution-get-visited-nodes
-(defun solution-get-visited-nodes(sol-node) (second sol-node))
+(defun get-visited-nodes(sol-node) (car (second sol-node)))
 
 ;; solution-get-cuts
-(defun solution-get-cuts(sol-node)(third sol-node))
+(defun get-cuts(sol-node)(second (second sol-node)))
 
 ;; solution-runtime
-(defun solution-runtime(sol-node)(fourth sol-node))
+(defun get-runtime(sol-node)(third (second sol-node)))
 
 ; ---------------------------------------- ;
 ;;; Aux Functions
@@ -197,7 +196,8 @@
     (let* (
           (move (funcall operation pieces-left possible-move state color))
           (updated-pieces-list (remove-used-piece pieces-left operation))
-		  (updated-player-info (player-info color (append (player-moves node color) (move-info operation possible-move)) updated-pieces-list))  
+		  ;(updated-player-info (player-info color (append (player-moves node color) (move-info operation possible-move)) updated-pieces-list))  
+		  (updated-player-info (player-info color nil updated-pieces-list)) 
           )
       (cond 
         ((null move) nil)
@@ -215,7 +215,7 @@
 ;; test => (get-children (make-node (board-t)) (possible-moves  (player-info 1  (move-info 'piece-c-2 '(0 0))) 'piece-a (board-t)) 'piece-a 1)
 (defun get-children(node possible-moves operation color)
   (cond 
-    ((null possible-moves) nil)
+    ((null possible-moves) nil) 
     (t (cons (get-child node (car possible-moves) operation color) (get-children node (cdr possible-moves) operation color)))
   )
 )
@@ -230,13 +230,13 @@
   "
   [operations] must be a list with all available operations
   "
-	(let ((player-data (cond ((= color 1) (node-p1 node)) (t (node-p2 node)))))
+	;(let ((player-data (cond ((= color 1) (node-p1 node)) (t (node-p2 node)))))
 		(cond
     		((null operations) nil)
-    		(t (remove-nil (append (get-children node (funcall #'possible-moves player-data (car operations) (node-state node)) (car operations) color)        
+    		(t (remove-nil (append (get-children node (funcall #'possible-moves (pieces-list node color) (car operations) (node-state node) color) (car operations) color)        
                       (expand-node node (cdr operations) color))))
    		)
-  	)
+  	;)
 )
 
 ;; order-nodes
@@ -249,8 +249,8 @@
 
 (defun max-f(node1 node2)
 	(cond 
-	((>= (node-value node1) (node-value node2)) node1)
-	(t node2)
+		((> (node-value node1) (node-value node2)) node1)
+		(t node2)
 	)
 )
 
@@ -265,6 +265,7 @@
 (defun final-node-f(node color)
 	(make-node (node-state node) (node-parent node) (node-p1 node) (node-p2 node) (* color (node-value node)))
 )
+
 
 ;; remove-duplicated 
 ;; removes elements duplicated between 2 lists

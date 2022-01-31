@@ -130,9 +130,12 @@
 ;;  check if adjacente elements/cells are taken (1, 2 or +)
 ;;  if, in fact, they are taken then returns null
 ;;  else 
-(defun check-adjacent-elems (row col board piece)
+(defun check-adjacent-elems (row col board piece val)
+"
+[val] must have the player piece value
+"
   (cond
-   ((eval (cons 'or (check-empty-elems board (piece-adjacent-elems row col piece) 1))) nil)
+   ((eval (cons 'or (check-empty-elems board (piece-adjacent-elems row col piece) val))) nil)
    (t t)
    )
 )
@@ -198,63 +201,45 @@
 "
 [player] player1 = 1 || player2 = -1
 "
+(let ((pieces-val (cond ((= player 1) 1) (t 2))))
   (cond 
     ((= 0 (pieces-left-numb pieces-list piece)) nil)
     ((or (> row (length board)) (< row 0) (< col 0) (> col (length board))) nil)
     ((not (filter-player-move player row col board piece)) nil)
-    ((not (check-adjacent-elems row col board piece)) nil)
+    ((not (check-adjacent-elems row col board piece pieces-val)) nil)
     ((eval (cons 'and (check-empty-elems board (piece-taken-elems row col piece))))t)
     (t nil)
   )
+)
 )
 
 ; ------------------------------------ ;
 ;;; Possible Moves 
 
-;; get-possible-indexes
-;; reduces the possible moves from all board to only the corner of placed pieces by one player
-;; returns a list with the corners indexes of placed pieces, from all player past moves
-;; test => (get-possible-indexes (list (list 'piece-a '(0 0)) (list 'piece-b '(1 1))))
-;; ((-1 -1) (1 -1) (-1 1) (1 1) (0 0) (3 0) (0 3) (3 3))
-(defun get-possible-indexes (player-moves &aux (first-elem (car player-moves))  (indexes (second first-elem))) 
-"
-[player-moves] (('piece-b (0 0)) ('piece-b (3 3)))) => (player (list (list piece (list row col)) (list piece (list row col)) )
-"
-  (cond 
-    ((null player-moves) nil)
-    (t (append (piece-corners-elems (car indexes) (second indexes) (car first-elem)) (get-possible-indexes (cdr player-moves))))
-  )
-)
-
-;; filter-possible-moves 
+;; all-spaces 
 ;; checks where can a piece be placed in the board from a list of indexes
 ;; returns a list with all possible moves based on all indexes given 
-;; (filter-possible-moves '(1 1 1) 'piece-a (board-t) (list '(1 1) '(0 0) '(12 12) '(13 13)) -1
-;; ((13 13))
-(defun filter-possible-moves(pieces-list piece board indexes-list player)
-  (remove-nil (mapcar (lambda (index) (cond ((can-placep pieces-list board (first index) (second index) piece player) index) (t nil))) indexes-list))
+(defun all-spaces(pieces-list piece board indexes-list player)
+  (remove-nil(mapcar (lambda (index) (cond ((can-placep pieces-list board (first index) (second index) piece player) index) (t nil))) indexes-list))
+)
+;; possible moves 
+;; checks where can a piece can be placed in the board from all positions in the board
+;; returns a list with indexes for all moves possible with a piece (sorted - up/down)
+;; test => (possible-moves '(1 1 1) 'piece-a (board-a))
+;; restult => ((0 0) (0 1) (0 2) (0 3) (1 0) (1 1) (1 2) (1 3) (2 0) (2 1) (2 2) (2 3) (3 0) (3 1) (3 2) (3 3))
+(defun possible-moves(pieces-list piece board player)
+  (reverse (all-spaces pieces-list piece board (check-all-board board (1- (length board)) (1- (length (car board)))) player))
 )
 
-;; possible-moves
-;; returns a list with indexes for all possible moves with a piece (filtered)
-;;!test (board was adapted with the pieces used in the test)
-;; test => (possible-moves (list 1 (list (list 'piece-a '(0 0)) (list 'piece-b '(1 1))) '(1 1 1)) 'piece-a (board-t))
-;; return => ((3 0) (0 3) (3 3))
-;; test => (possible-moves (list 1 nil '(1 1 1)) 'piece-a (board-t))
-;; return => ((0 0))
-(defun possible-moves(player-node piece board)
-"
-[player-node] (1 (('piece-b (0 0)) ('piece-b (3 3)))) => (player (list (list piece (list row col)) (list piece (list row col)) ))
-"
-  (let ((possible-indexes (get-possible-indexes (second player-node))) (pieces-list (third player-node)))
-    (cond 
-      ((null possible-indexes) (filter-possible-moves pieces-list piece board (list '(0 0) '(13 13) '(11 12) '(12 12)) (car player-node))) 
-      (t(filter-possible-moves pieces-list piece board possible-indexes (car player-node)))
-    )
+;; check-all-board
+;; returns a list with all indexes in the board
+(defun check-all-board(board row col)
+  (cond 
+    ((< row 0) nil)
+    ((< col 0) (check-all-board board (1- row) (1- (length board))))
+    (t (cons (list row col) (check-all-board board row (1- col))))
   )
 )
-
-
 ; --------------------------------- ;
 ;;; Pieces
 
@@ -391,15 +376,16 @@
 
 (defun count-points (pieces-list)
   ;(- (+ (first pieces-list) (* (second pieces-list) 4) (* (third pieces-list) 4)))
-  (+ (- 10 (first pieces-list)) (* (- 10(second pieces-list)) 4) (* (- 15 (third pieces-list)) 4))
+  (+ (- 10 (first pieces-list)) (* (- 10 (second pieces-list)) 4) (* (- 15 (third pieces-list)) 4))
 )
 
 ;; winner
 ;; defines the winner
 ;; uses the function 'count-points' (puzzle/game dependent) 
-;; returns 
+;; pieces-list dependent function
+;; returns winner
 (defun winner(node)
-	(let ((p1-points (count-points (pieces-list node 1))) (p2-points (count-pieces (pieces-list node -1))))
+	(let ((p1-points (count-points (pieces-list node 1))) (p2-points (count-points (pieces-list node -1))))
 		(cond 
 		((> p1-points p2-points) 'Jogador1)
 		((< p1-points p2-points) 'Jogador2)
@@ -408,25 +394,48 @@
 	)
 )
 
-
 ;!===================================deprecated================================================= 
 #|
-;; possible moves 
-;; checks where can a piece be placed in the board from all positions in the board
-;; returns a list with indexes for all moves possible with a piece (sorted - up/down)
-;; test => (possible-moves '(1 1 1) 'piece-a (board-a))
-;; restult => ((0 0) (0 1) (0 2) (0 3) (1 0) (1 1) (1 2) (1 3) (2 0) (2 1) (2 2) (2 3) (3 0) (3 1) (3 2) (3 3))
-(defun possible-moves(pieces-list piece board player)
-  (reverse (filter-possible-moves pieces-list piece board (check-all-board board (1- (length board)) (1- (length (car board)))) player))
+;; get-possible-indexes
+;; reduces the possible moves from all board to only the corner of placed pieces by one player
+;; returns a list with the corners indexes of placed pieces, from all player past moves
+;; test => (get-possible-indexes (list (list 'piece-a '(0 0)) (list 'piece-b '(1 1))))
+;; ((-1 -1) (1 -1) (-1 1) (1 1) (0 0) (3 0) (0 3) (3 3))
+(defun get-possible-indexes (player-moves &aux (first-elem (car player-moves))  (indexes (second first-elem))) 
+"
+[player-moves] (('piece-b (0 0)) ('piece-b (3 3)))) => (player (list (list piece (list row col)) (list piece (list row col)) )
+"
+  (cond 
+    ((null player-moves) nil)
+    (t (append (piece-corners-elems (car indexes) (second indexes) (car first-elem)) (get-possible-indexes (cdr player-moves))))
+  )
 )
 
-;; check-all-board
-;; returns a list with all indexes in the board
-(defun check-all-board(board row col)
-  (cond 
-    ((< row 0) nil)
-    ((< col 0) (check-all-board board (1- row) (1- (length board))))
-    (t (cons (list row col) (check-all-board board row (1- col))))
+;; filter-possible-moves 
+;; checks where can a piece be placed in the board from a list of indexes
+;; returns a list with all possible moves based on all indexes given 
+;; (filter-possible-moves '(1 1 1) 'piece-a (board-t) (list '(1 1) '(0 0) '(12 12) '(13 13)) -1
+;; ((13 13))
+(defun filter-possible-moves(pieces-list piece board indexes-list player)
+  (remove-nil (mapcar (lambda (index) (cond ((can-placep pieces-list board (first index) (second index) piece player) index) (t nil))) indexes-list))
+)
+
+;; possible-moves
+;; returns a list with indexes for all possible moves with a piece (filtered)
+;;!test (board was adapted with the pieces used in the test)
+;; test => (possible-moves (list 1 (list (list 'piece-a '(0 0)) (list 'piece-b '(1 1))) '(1 1 1)) 'piece-a (board-t))
+;; return => ((3 0) (0 3) (3 3))
+;; test => (possible-moves (list 1 nil '(1 1 1)) 'piece-a (board-t))
+;; return => ((0 0))
+(defun possible-moves(player-node piece board)
+"
+[player-node] (1 (('piece-b (0 0)) ('piece-b (3 3))) '(10 10 15)) => (player (list (list piece (list row col)) (list piece (list row col)) ) pices-list)
+"
+  (let ((possible-indexes (get-possible-indexes (second player-node))) (pieces-list (third player-node)))
+    (cond 
+      ((null possible-indexes) (filter-possible-moves pieces-list piece board (list '(0 0) '(13 13) '(11 12) '(12 12)) (car player-node))) 
+      (t(filter-possible-moves pieces-list piece board possible-indexes (car player-node)))
+    )
   )
 )
 |#
