@@ -6,14 +6,13 @@
 
 ;;; Game Handler
 
-;; jogar 
-;; returns a list with 2 elements [play board-state(after the play)]
-#|(defun jogar(pos time)
-"
-[pos] position 
-[time] maximum (1 - 20 milliseconds) time of an computer play
-"
+;; get-log-path
+;; returns the path to the log file 
+(defun get-log-path()
+  (make-pathname :host "D" :directory '(:absolute "GitHub\\Blokus2") :name "log" :type "dat")   
 )
+
+
 
 (defun human-vs-computer(max-time color &optional (node (make-node (empty-board))))
   (let* (
@@ -22,9 +21,9 @@
 
   )
 )
-|#
 
-(defun computer-only(max-time color &optional (node (make-node (empty-board))))
+
+(defun computer-only(max-time player &optional (node (make-node (empty-board))))
   (let* (
           (c1-moves    (expand-node node (operations) 1))
           (c1-pieces   (pieces-list node 1))
@@ -32,25 +31,26 @@
           (c2-moves    (expand-node node (operations) -1))
           (c2-pieces   (pieces-list node -1))
           (can-c2-play (or (null c2-moves) (= 0 (apply '+ c2-pieces))))        ; t = can't play
-          (can-current-play (cond ((= color 1) can-c1-play) (t can-c2-play)))  ; t = can't play
+          (can-current-play (cond ((= player 1) can-c1-play) (t can-c2-play)))  ; t = can't play
+          (player-numb (cond ((= player 1) 1) (t 2)))
         )
     (cond 
-      ((and can-c1-play can-c2-play) (footer node))                            ; endgame (+ log.dat)
+      ((and can-c1-play can-c2-play) (log-footer node))                            ; endgame (+ log.dat)
       (t 
         (cond 
           ((eval can-current-play) 
             (progn  
               (format t "~%________Sem Jogadas________~%")
-              (computer-only max-time (- color) node)
+              (computer-only max-time (- player) node)
             )
           )
           (t(let* (
-                    (solution-nd (negamax max-time node 1))
+                    (solution-nd (negamax max-time node 1 player))
                     (sol-node (get-solution-node solution-nd))
                   )
               (progn 
-                (log-file solution-nd color) 
-                (computer-only max-time (- color) (make-node (node-state sol-node) nil (node-p1 sol-node) (node-p2 sol-node)))
+                (log-file solution-nd player) 
+                (computer-only max-time (- player) (make-node (node-state sol-node) nil (node-p1 sol-node) (node-p2 sol-node)))
               )
             )
           )
@@ -154,20 +154,8 @@
 ;; possible-moves-view
 (defun possible-moves-view())
 
-;; get-move
-;; piece and position
-(defun get-move())
-
-(defun winner-view())
-
-
 ;;; Files Handler (log.dat)
 
-;; get-log-path
-;; returns the path to the log file 
-(defun get-log-path()
-  (make-pathname :host "D" :directory '(:absolute "GitHub\\Blokus2") :name "log" :type "dat")   
-)
 
 ;; TODO
 ;; Ficheiro log.dat : 
@@ -176,10 +164,14 @@
 ; - o numero de nos analisados
 ; - o numero de cortes efetuados (de cada tipo)
 ;- tempo gasto
+(defun header(stream max-time)
+  (format stream "~%----------------- INICIO -----------------~%max-time: ~a~%~%" max-time)
+)
+
 (defun log-header(max-time)
-  (progn (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create)
-          (format file "~%----------------- INICIO -----------------~%max-time: ~a~%~%" max-time))  
-          (format t "~%----------------- INICIO -----------------~%max-time: ~a~%~%" max-time) 
+  (progn 
+    (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create) (header file max-time))  
+    (header t max-time)
   )     
 )
 
@@ -200,14 +192,6 @@
   )
 )
 
-(defun log-footer(current-node)
-  (progn
-       (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create)
-            (show-winner-message current-node file))
-       (show-winner-message current-node t)
-  )
-) 
-
 (defun log-stream (stream state player piece indexes nodes-visited cuts runtime)
   (progn 
     (format-board state stream)
@@ -219,7 +203,26 @@
   )                       
 )
 
-(defun log-winner())
+(defun log-footer(node)
+  (progn
+    (with-open-file (file (get-log-path) :direction :output :if-exists :append :if-does-not-exist :create) (log-winner node file))
+    (log-winner node t)
+  )
+) 
+
+(defun log-winner(node stream)
+ (format stream    "~%__________________________________________________________")
+    (format stream "~%\\                      BLOKUS DUO                        /")
+    (format stream "~%/                                                        \\")
+    (format stream "~%\\                       Vencedor                         /")
+    (format stream "~%/                       Jogador ~a                       \\" )
+    (format stream "~%\\                                                        /")
+    (format stream "~%/    Jogador 1: ~a pontos  vs  Jogador 2: ~a pontos      \\")
+    (format stream "~%\\      pecas:                    pecas:                  /")
+    (format stream "~%/                                                        \\")
+    (format stream "~%\\________________________________________________________/~%~%> ")
+
+)
 
 ;;; Formatters
 

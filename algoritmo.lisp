@@ -128,10 +128,10 @@
                (cuts 0)
                )
 
-  (let* ((children (order-nodes (funcall #'expand-node node (operations) color))))
+  (let* ((children (order-nodes (funcall #'expand-node node (operations) player))))
     (cond
      ((or (= max-depth 0) (null children) (>= (runtime start-time) max-time)) 
-      (solution-node (final-node-f node color) visited-nodes cuts start-time))
+      (solution-node (final-node-f node color player) visited-nodes cuts start-time))
      (t (negamax- node children max-time color player max-depth alpha beta start-time visited-nodes cuts))
      )
     )
@@ -140,9 +140,9 @@
 (defun negamax-(parent children max-time color player max-depth alpha beta start-time visited-nodes cuts)
 	(cond
    		((= (length children) 1) 
-    		(negamax max-time (-f (car children)) (- color) (1- max-depth) (- beta) (- alpha) start-time (1+ visited-nodes) cuts))
+    		(negamax max-time (-f (car children)) (- color) (- player) (1- max-depth) (- beta) (- alpha) start-time (1+ visited-nodes) cuts))
    		(t (let* (
-			(solution (negamax max-time (-f (car children)) (- color) (1- max-depth) (- beta) (- alpha) start-time (1+ visited-nodes) cuts))
+			(solution (negamax max-time (-f (car children)) (- color) (- player) (1- max-depth) (- beta) (- alpha) start-time (1+ visited-nodes) cuts))
             (best-value (node-value (max-f (car solution) parent)))
             (temp-alpha (max alpha best-value))
             (v-nodes (get-visited-nodes solution))       
@@ -150,7 +150,7 @@
             )
       			(cond 
 	  				((>= temp-alpha beta) (solution-node parent v-nodes (1+ cuts-numb) start-time))
-        			(t (negamax- parent (cdr children) max-time color max-depth temp-alpha beta start-time v-nodes cuts-numb))
+        			(t (negamax- parent (cdr children) max-time color player max-depth temp-alpha beta start-time v-nodes cuts-numb))
     			)
       		)
    		)
@@ -261,9 +261,9 @@
 
 ;; final-node-f 
 ;; returs a node with its value multiplied by the player pieces color
-(defun final-node-f(node color)
+(defun final-node-f(node color player)
 	;(make-node (node-state node) (node-parent node) (node-p1 node) (node-p2 node) (* color (count-points (pieces-list node color))))
-	(make-node (node-state node) (node-parent node) (node-p1 node) (node-p2 node) (* color (get-h node color)))
+	(make-node (node-state node) (node-parent node) (node-p1 node) (node-p2 node) (* color (get-h node player)))
 )
 
 ;; runtime 
