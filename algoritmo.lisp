@@ -40,7 +40,7 @@
 ;;  uses the function 'init-pieces' (puzzle/game dependent) to define the pieces list
 ;;  returns a list with all data
 ;;  test => (make-node (empty-board))
-(defun make-node(state &optional (parent nil) (p1-node (player-info)) (p2-node (player-info -1)) (f -500))
+(defun make-node(state &optional (parent nil) (p1-node (player-info)) (p2-node (player-info -1)) (f 0))
   (list state parent f p1-node p2-node)
 )
 
@@ -147,16 +147,15 @@
    		(t (let* (
 			(solution (negamax max-time (-f (car children)) (- color) (1- max-depth) (- beta) (- alpha) start-time (1+ visited-nodes) cuts))
             (best-value (node-value (max-f (car solution) parent)))
-            (alpha (max alpha best-value))
+            (temp-alpha (max alpha best-value))
             (v-nodes (get-visited-nodes solution))       
             (cuts-numb (get-cuts solution))
             )
       			(cond 
-	  				((>= alpha beta) (solution-node parent v-nodes (1+ cuts-numb) start-time))
-        			(t (negamax- parent (cdr children) max-time color max-depth alpha beta start-time v-nodes cuts-numb))
+	  				((>= temp-alpha beta) (solution-node parent v-nodes (1+ cuts-numb) start-time))
+        			(t (negamax- parent (cdr children) max-time color max-depth temp-alpha beta start-time v-nodes cuts-numb))
     			)
       		)
-    	
    		)
   	)
 )
@@ -201,8 +200,10 @@
           )
       (cond 
         ((null move) nil)
-		((= color 1) (make-node move nil updated-player-info (node-p2 node) (count-points updated-pieces-list)))
-        (t (make-node move nil (node-p1 node) updated-player-info (count-points updated-pieces-list))) 
+		;((= color 1) (make-node move nil updated-player-info (node-p2 node) (count-points updated-pieces-list)))
+		((= color 1) (make-node move nil updated-player-info (node-p2 node) 0))
+        ;(t (make-node move nil (node-p1 node) updated-player-info (count-points updated-pieces-list))) 
+		(t (make-node move nil (node-p1 node) updated-player-info 0))
       )
   )
 )
@@ -235,6 +236,7 @@
     		((null operations) nil)
     		(t (remove-nil (append (get-children node (funcall #'possible-moves (pieces-list node color) (car operations) (node-state node) color) (car operations) color)        
                       (expand-node node (cdr operations) color))))
+
    		)
   	;)
 )
@@ -244,12 +246,12 @@
 ;; test
 ;; (order-nodes (expand-node (make-node (empty-board)) (operations) 1))
 (defun order-nodes(node-list) 
-	(sort node-list #'> :key #'node-value)
+	(sort node-list #'< :key #'node-value)
 )
 
 (defun max-f(node1 node2)
 	(cond 
-		((> (node-value node1) (node-value node2)) node1)
+		((>= (node-value node1) (node-value node2)) node1)
 		(t node2)
 	)
 )
@@ -263,7 +265,8 @@
 ;; final-node-f 
 ;; returs a node with its value multiplied by the player pieces color
 (defun final-node-f(node color)
-	(make-node (node-state node) (node-parent node) (node-p1 node) (node-p2 node) (* color (node-value node)))
+	;(make-node (node-state node) (node-parent node) (node-p1 node) (node-p2 node) (* color (count-points (pieces-list node color))))
+	(make-node (node-state node) (node-parent node) (node-p1 node) (node-p2 node) (* color (get-h node color)))
 )
 
 
@@ -293,16 +296,8 @@
 ;;TODO
 ;; geral -> limite de tempo usado,
 ;; cada jogada -> valor, profundidade do grafo, numero de cortes na analise
-;; TODO
-;; Ficheiro log.dat : 
-; - qual a jogada realizada
-; - o valor da posicao para onde jogou
-; - o numero de nos analisados
-; - o numero de cortes efetuados (de cada tipo)
 
 ;; runtime 
 (defun runtime(start-time)
 	(/(- (get-internal-real-time) start-time) 1000)
 )
-
-

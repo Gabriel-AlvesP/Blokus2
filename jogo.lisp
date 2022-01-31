@@ -106,9 +106,13 @@
 
 ;; get-move
 ;; piece and position
-(defun get-move())
+(defun get-move()
 
-(defun winner-view())
+)
+
+(defun winner-view()
+
+)
 
 
 (defun jogar(pos time)

@@ -374,6 +374,10 @@
 ; --------------------------------- ;
 ;;; Endgame Handling
 
+(defun get-h(node color)
+  (- (count-points (pieces-list node color)) (count-points (pieces-list node (- color))))
+)
+
 (defun count-points (pieces-list)
   ;(- (+ (first pieces-list) (* (second pieces-list) 4) (* (third pieces-list) 4)))
   (+ (- 10 (first pieces-list)) (* (- 10 (second pieces-list)) 4) (* (- 15 (third pieces-list)) 4))
