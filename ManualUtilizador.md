@@ -99,7 +99,6 @@ Este comando dá ínicio ao programa e mostra o seguinte menu.
 
 Caso a escolha seja a primeira opção, será apresentado o seguinte menu, para decidir quem será o primeiro a jogar.
 
-<center><img src=></center>
 
 - Opção que seleciona o Jogador como sendo o primeiro a jogar.
 
@@ -114,8 +113,6 @@ Caso escolha a segunda opção do menu inicial, será apresentado com menu apres
 - Deverá introduzir um valor no intervalo de 1 a 20.
 
 No final será mostrada uma mensagem com as informações relativas aos intervalos.
-
-<center><img src=></center>
 
 Após a execução do programa será criado um ficheiro ".dat" com o output do mesmo. Este ficheiro de output terá no seu conteúdo as soluções do problema executado bem como as suas estatísticas.
 

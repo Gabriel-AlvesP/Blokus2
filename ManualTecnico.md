@@ -42,8 +42,6 @@ Para uma melhor organização do projeto, este foi divido em três ficheiros.
   - [Game Handler](#gameHandler)
   - [Files Handler](#filesHandler)
   - [Formatters](#formatters)
-- [Estatisticas](#estatisticas)
-
 ---
 
 ## **[Puzzle](#puzzle)**
@@ -899,22 +897,6 @@ As funções auxiliares são utilizadas como suporte aos dados abstratos, aos al
 
 ### **[Game Handler](#gameHandler)**
 
-#### [Init-menu](#init-menu)
-
-- A função _[init-menu](#init-menu)_ mostra o menu inicial do jogo.
-
-```lisp
-(defun init-menu()
-    (format t "~%___________________________________________________________")
-    (format t "~%\\                      BLOKUS DUO                         /")
-    (format t "~%/                                                         \\")
-    (format t "~%\\     1 - Humano vs Computador                            /")
-    (format t "~%/       2 - Computador vs Computador                      \\")
-    (format t "~%\\     0 - Sair                                            /")
-    (format t "~%/_________________________________________________________\\~%~%>")
-)
-```
-
 #### [Start](#start)
 
 - A função _[start](#start)_ recebe dados pelo utilizador a partir do teclado e por consequência executa a ação/operação correspondente, em relação à função _[init-menu](#init-menu)_.
@@ -1034,7 +1016,7 @@ As funções auxiliares são utilizadas como suporte aos dados abstratos, aos al
           (can-current-play (cond ((= player 1) can-c-play) (t can-c-play)))                                  ; t = can't play
         )
     (cond 
-      ((and can-c1-play can-c2-play) (log-footer node))
+      ((and can-p-play can-c-play) (log-footer node))
       ((= 1 player)                                                                                           ; Man 
         (cond 
           ((eval can-current-play) 
@@ -1043,12 +1025,12 @@ As funções auxiliares são utilizadas como suporte aos dados abstratos, aos al
               (human-vs-computer max-time (- player) node))
           )
           (t(let* (
-                    (piece (piece-input))    ;!
-                    (indexes (move-input))  ;!
+                    (piece (piece-input node player))  
+                    (indexes (move-input node piece player))  
                     (move (get-child node indexes piece player))
                   )
               (progn
-                  (log-file solution-nd player)
+                  (log-file (solution-node move 0 0 0) player)
                   (format t "Jogou a peca ~a na posicao (~a , ~a)~%" piece (first indexes) (second indexes))
                   (human-vs-computer max-time (- player) move)
               ) 
@@ -1087,16 +1069,21 @@ As funções auxiliares são utilizadas como suporte aos dados abstratos, aos al
 
 ```lisp
 (defun piece-view(pieces)
-  (prog 
+  (progn
     (format t "~%___________________________________________________________")
     (format t "~%\\           Escolha o tipo de peca a colocar              /")
-    (cond ((> (car pieces) 0)
-    (format t "~%/                     1 - peca A                          \\"))
-    ((> (second pieces) 0)
-    (format t "~%\\                    2 - peca B                           /"))
+    (cond 
+      ((> (first pieces) 0)
+        (format t "~%/                     1 - peca A                          \\"))
+      ((> (second pieces) 0)
+        (format t "~%\\                    2 - peca B                           /"))
       ((> (third pieces) 0)
-    (format t "~%\\                    3 - peca C1                         \\")
-    (format t "~%/                     4 - peca C2                          /")))
+        (progn 
+          (format t "~%\\                    3 - peca C1                         \\")
+          (format t "~%/                     4 - peca C2                          /")
+        )
+      )
+    )
     (format t "~%/_________________________________________________________\\~%~%>")
   )
 )
