@@ -243,7 +243,7 @@
 ;; test
 ;; (order-nodes (expand-node (make-node (empty-board)) (operations) 1))
 (defun order-nodes(node-list) 
-	(sort node-list #'< :key #'node-value)
+	(sort node-list #'> :key #'node-value)
 )
 
 (defun max-f(node1 node2)

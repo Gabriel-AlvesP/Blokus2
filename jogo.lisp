@@ -84,21 +84,13 @@
   (progn
     (format t "~%___________________________________________________________")
     (format t "~%\\           Escolha o tipo de peca a colocar              /")
-    (cond 
-      ((> (first pieces) 0)
-        (format t "~%/                     1 - peca A                          \\"))
-      ((> (second pieces) 0)
-        (format t "~%\\                    2 - peca B                           /"))
-      ((> (third pieces) 0)
-        (progn 
-          (format t "~%\\                    3 - peca C1                         \\")
-          (format t "~%/                     4 - peca C2                          /")
-        )
-      )
-    )
+    (format t "~%/                     1 - peca A - ~a                     \\"   (car pieces))
+    (format t "~%\\                    2 - peca B - ~a                        /" (second pieces)) 
+    (format t "~%\\                    3 - peca C1 - ~a                       \\" (third pieces))
+    (format t "~%/                     4 - peca C2  - ~a                       /" (third pieces))
     (format t "~%/_________________________________________________________\\~%~%>")
   )
-)
+
 
 
 (defun piece-input(node player &aux (pieces (pieces-list node player)))
@@ -106,7 +98,7 @@
           (piece-view pieces)
         (let* ((option (read)))
           (cond 
-            ((or (not (numberp option)) (< 1 option) (> 4 option)) 
+            ((or (not (numberp option)) (< option 1) (> option 4)) 
               (progn 
                 (format t "~% __________________________________________________________")
                 (format t "~%/                 Escolha uma opcao valida                /") 
