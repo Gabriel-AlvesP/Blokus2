@@ -102,8 +102,8 @@
 
 
 (defun piece-input(node player &aux (pieces (pieces-list node player)))
-    (prog
-        (piece-view pieces)
+    (progn
+          (piece-view pieces)
         (let* ((option (read)))
           (cond 
             ((or (not (numberp option)) (< 1 option) (> 4 option)) 
