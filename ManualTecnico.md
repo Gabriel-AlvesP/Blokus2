@@ -568,22 +568,12 @@ Os tipos abstratos de dados são criados e utilizados para guardar as informaç�
 
 #### [Player-info](#player-info)
 
-- A função _[player-info](#player-info)_
-
-```lisp
-(defun player-info(&optional (color 1) (moves nil) (pieces-list (init-pieces)))
-	(list color moves pieces-list)
-)
-```
-
-#### [Move-info](#move-info)
-
-- A função _[move-info](#move-info)_
+- A função _[player-info](#player-info)_ recebe por parâmetro uma peça e um jogador. Retorna uma lista com a peça e o jogador.
 
 ```lisp
 (defun move-info(piece move)
 "
-[piece] operation
+[piece] operation 
 [move] list with row and col
 "
 (list (list piece move))
@@ -595,10 +585,9 @@ Os tipos abstratos de dados são criados e utilizados para guardar as informaç�
 - A função _[make-node](#make-node)_ contrói um nó com o estado no _tabuleiro_, a _profundidade_ e o _nó pai_. Usa a função _[init-pieces](#init_pieces)_ para definir a lista de peças e retorna uma lista com todos os dados.
 
 ```lisp
-(defun make-node(state &optional (parent nil) (p1-node (player-info)) (p2-node (player-info -1)) (f -500))
+(defun make-node(state &optional (parent nil) (p1-node (player-info)) (p2-node (player-info -1)) (f 0))
   (list state parent f p1-node p2-node)
 )
-
 ```
 
 #### [Node-state](#node-state)
@@ -623,7 +612,7 @@ Os tipos abstratos de dados são criados e utilizados para guardar as informaç�
 
 #### [Node-value](#node-value)
 
-- A função _[node-value](#node-value)_
+- A função _[node-value](#node-value)_ retorna o valor do nó.
 
 ```lisp
 (defun node-value(node)
@@ -633,7 +622,7 @@ Os tipos abstratos de dados são criados e utilizados para guardar as informaç�
 
 #### [Node-p1](#node-p1)
 
-- A função _[node-p1](#node-p1)_
+- A função _[node-p1](#node-p1)_ retorna o nó referente ao **Jogador 1**.
 
 ```lisp
 (defun node-p1 (node)
@@ -643,7 +632,7 @@ Os tipos abstratos de dados são criados e utilizados para guardar as informaç�
 
 #### [Node-p2](#node-p2)
 
-- A função _[node-p2](#node-p2)_
+- A função _[node-p2](#node-p2)_ retorna o nó referente ao **Jogador 2**.
 
 ```lisp
 (defun node-p2 (node)
@@ -657,10 +646,22 @@ Os tipos abstratos de dados são criados e utilizados para guardar as informaç�
 
 ```lisp
 (defun player-moves(node color)
-	(cond
+	(cond 
 		((= 1 color) (second (node-p1 node)))
 		(t (second (node-p2 node)))
 	)
+)
+```
+
+#### [Last-move](#last-move)
+
+- A função _[last-move](#last-move)_, retorna um nó com a informação referente à última jogada.
+
+```lisp
+(defun last-move(node color)
+  (let ((moves (player-moves node color)))
+    (nth (1-(length moves)) moves)
+  )
 )
 ```
 
@@ -670,7 +671,7 @@ Os tipos abstratos de dados são criados e utilizados para guardar as informaç�
 
 ```lisp
 (defun pieces-list(node color)
-	(cond
+	(cond 
 		((= 1 color) (third (node-p1 node)))
 		(t (third (node-p2 node)))
 	)
@@ -683,47 +684,92 @@ Os algoritmos são funções que executam um conjunto de operações com o objet
 
 #### [Negamax](#negamax)
 
-- A função _[negamax](#negamx)_
+- A função _[negamax](#negamx)_ é responsável por executar todos os passos do algoritmo negamax.
 
 ```lisp
-(defun negamax (max-time
-			&optional
-				(node (make-node (empty-board) nil (player-info 1) (player-info -1) most-negative-fixnum))
-				(color 1)
-				(alpha most-negative-fixnum)
-				(beta most-positive-fixnum)
-				(nodes-visited 1)
-				(cuts-number 0)
-				(start-time (get-internal-real-time))
-				(depth 2))
-	(let* ((children (order-nodes (expand-node node (operations) color))))
-		(cond
-			((or (= depth 0) (null children) (> (runtime start-time) max-time)) (final-node-f node color))
-			(t (-negamax max-time node children color alpha beta nodes-visited cuts-number start-time depth))
-		)
-	)
+(defun negamax(max-time                 
+               &optional 
+               (node (make-node (empty-board) nil (player-info 1) (player-info -1) most-negative-fixnum))
+               (color 1)
+               (player 1)
+               (max-depth 6)
+               (alpha most-negative-fixnum) 
+               (beta most-positive-fixnum) 
+               (start-time (get-internal-real-time))
+               (visited-nodes 1)
+               (cuts 0)
+               )
+
+  (let* ((children (order-nodes (funcall #'expand-node node (operations) player))))
+    (cond
+     ((or (= max-depth 0) (null children) (>= (runtime start-time) max-time)) 
+      (solution-node (final-node-f node color player) visited-nodes cuts start-time))
+     (t (negamax- node children max-time color player max-depth alpha beta start-time visited-nodes cuts))
+     )
+    )
+  )
+```
+
+#### [Negamax-](#negamax-)
+
+- A função _[negamax-](#negamx-)_ é uma função auxiliar, responsável por criar a árvore a partir dos sucessores.
+
+```lisp
+(defun negamax-(parent children max-time color player max-depth alpha beta start-time visited-nodes cuts)
+	(cond
+   		((= (length children) 1) 
+    		(negamax max-time (-f (car children)) (- color) (- player) (1- max-depth) (- beta) (- alpha) start-time (1+ visited-nodes) cuts))
+   		(t (let* (
+			(solution (negamax max-time (-f (car children)) (- color) (- player) (1- max-depth) (- beta) (- alpha) start-time (1+ visited-nodes) cuts))
+            (best-value (node-value (max-f (car solution) parent)))
+            (temp-alpha (max alpha best-value))
+            (v-nodes (get-visited-nodes solution))       
+            (cuts-numb (get-cuts solution))
+            )
+      			(cond 
+	  				((>= temp-alpha beta) (solution-node parent v-nodes (1+ cuts-numb) start-time))
+        			(t (negamax- parent (cdr children) max-time color player max-depth temp-alpha beta start-time v-nodes cuts-numb))
+    			)
+      		)
+   		)
+  	)
 )
 ```
 
-#### [-Negamax](#-negamax)
+### **[Solution Node](#solution-node)**
 
-- A função _[-negamax](#-negamx)_
+#### [Solution-node](#solution-node)
 
 ```lisp
-(defun -negamax(max-time parent children color alpha beta nodes-visited cuts-number start-time depth)
-	(cond
-	((= (length children) 1) (negamax max-time (-f (car children)) (- color) (- beta) (- alpha) (1+ nodes-visited) cuts-number start-time (1- depth)))
-	(t (let* ((node (negamax max-time (-f (car children)) (- color) (- beta) (- alpha) (1+ nodes-visited) cuts-number start-time (1- depth)))
-				(best-node (max-f parent  node))
-				(alpha (max alpha (node-value best-node)))
-				)
-		(cond
-			((>= alpha beta ) parent)
-			(t (-negamax max-time parent (cdr children) color alpha beta nodes-visited cuts-number start-time depth))
-		)
-	))
-	)
+(defun solution-node(node visited-nodes cuts-number start-time)
+	(list node (list visited-nodes cuts-number (runtime start-time)))
 )
+```
+
+#### [Get-solution-node](#get-solution-node)
+
+```lisp
+(defun get-solution-node(sol-node) (car sol-node))
+```
+
+#### [Get-visited-nodes](#get-visited-nodes)
+
+```lisp
+(defun get-visited-nodes(sol-node) (car (second sol-node)))
+```
+
+#### [Get-cuts](#get-cuts)
+
+```lisp
+(defun get-cuts(sol-node)(second (second sol-node)))
+```
+
+#### [Get-runtime](#get-runtime)
+
+- A função _[get-runtime](#get-runtime)_
+
+```lisp
+(defun get-runtime(sol-node)(third (second sol-node)))
 ```
 
 ### **[Auxiliares](#auxiliares)**
@@ -740,17 +786,20 @@ As funções auxiliares são utilizadas como suporte aos dados abstratos, aos al
 (defun get-child(node possible-move operation color &aux (pieces-left (pieces-list node color)) (state (node-state node)))
     "
 	[Operation] must be a function
-	[color] represents the player - player1 = 1 || player2 = -1
+	[color] represents the player - player1 = 1 || player2 = -1 
 	"
     (let* (
           (move (funcall operation pieces-left possible-move state color))
           (updated-pieces-list (remove-used-piece pieces-left operation))
-		  (updated-player-info (player-info color (append (player-moves node color) (move-info operation possible-move)) updated-pieces-list))
+		      (updated-player-info (player-info color (append (player-moves node color) (move-info operation possible-move)) updated-pieces-list))  
+		      ;(updated-player-info (player-info color nil updated-pieces-list)) 
           )
-      (cond
+      (cond 
         ((null move) nil)
-		((= color 1) (make-node move nil updated-player-info (node-p2 node) (count-points updated-pieces-list)))
-        (t (make-node move nil (node-p1 node) updated-player-info (count-points updated-pieces-list)))
+		;((= color 1) (make-node move nil updated-player-info (node-p2 node) (count-points updated-pieces-list)))
+		((= color 1) (make-node move nil updated-player-info (node-p2 node) 0))
+    ;(t (make-node move nil (node-p1 node) updated-player-info (count-points updated-pieces-list))) 
+		(t (make-node move nil (node-p1 node) updated-player-info 0))
       )
   )
 )
@@ -764,8 +813,8 @@ As funções auxiliares são utilizadas como suporte aos dados abstratos, aos al
 
 ```lisp
 (defun get-children(node possible-moves operation color)
-  (cond
-    ((null possible-moves) nil)
+  (cond 
+    ((null possible-moves) nil) 
     (t (cons (get-child node (car possible-moves) operation color) (get-children node (cdr possible-moves) operation color)))
   )
 )
@@ -782,13 +831,12 @@ As funções auxiliares são utilizadas como suporte aos dados abstratos, aos al
   "
   [operations] must be a list with all available operations
   "
-	(let ((player-data (cond ((= color 1) (node-p1 node)) (t (node-p2 node)))))
 		(cond
     		((null operations) nil)
-    		(t (remove-nil (append (get-children node (funcall #'possible-moves player-data (car operations) (node-state node)) (car operations) color)
+    		(t (remove-nil (append (get-children node (funcall #'possible-moves (pieces-list node color) (car operations) (node-state node) color) (car operations) color)        
                       (expand-node node (cdr operations) color))))
+
    		)
-  	)
 )
 ```
 
@@ -797,7 +845,7 @@ As funções auxiliares são utilizadas como suporte aos dados abstratos, aos al
 - A função _[order-nodes](#order-nodes)_ ordena uma lista de nós de forma decrescente.
 
 ```lisp
-(defun order-nodes(node-list)
+(defun order-nodes(node-list) 
 	(sort node-list #'> :key #'node-value)
 )
 ```
@@ -808,16 +856,16 @@ As funções auxiliares são utilizadas como suporte aos dados abstratos, aos al
 
 ```lisp
 (defun max-f(node1 node2)
-	(cond
-	((>= (node-value node1) (node-value node2)) node1)
-	(t node2)
+	(cond 
+		((>= (node-value node1) (node-value node2)) node1)
+		(t node2)
 	)
 )
 ```
 
 #### [-f](#-f)
 
-- A função _[-f](#-f)_ recebe por parâmetro um nó e devolve
+- A função _[-f](#-f)_ recebe por parâmetro um nó e devolve o nó com o valor invertido.
 
 ```lisp
 (defun -f(node)
@@ -827,38 +875,11 @@ As funções auxiliares são utilizadas como suporte aos dados abstratos, aos al
 
 #### [Final-node-f](#final-node-f)
 
-- A função _[final-node-f](#final-node-f)_ recebe por parâmetro um nó e a cor
+- A função _[final-node-f](#final-node-f)_ retorna um nó com o seu valor multiplicado pela cor das peças do jogador.
 
 ```lisp
-(defun final-node-f(node color)
-	(make-node (node-state node) (node-parent node) (node-p1 node) (node-p2 node) (* color (node-value node)))
-)
-```
-
-#### [Remove-duplicated](#remove-duplicated)
-
-- A função _[remove-duplicated](#remove-duplicated)_ recebe por parâmetro duas
-
-```lisp
-(defun remove-duplicated(list1 list2)
-	(cond
-		((null list2) list1)
-		(t (remove-nil (mapcar (lambda(x) (cond ((exist-nodep x list2) nil) (t x))) list1)))
-	)
-)
-```
-
-#### [Exist-nodep](#exist-nodep)
-
-- Verifica se o nó, _**node**_, está presente numa lista, _**node-list**_.
-- Utiliza como função auxiliar [node-state](#node-state)
-
-```lisp
-(defun exist-nodep(node node-list)
-  (cond
-   ((null node-list) nil)
-   (t (eval (cons 'or (mapcar (lambda (x) (cond ((equal (node-state node) (node-state x)) t) (t nil))) node-list))))
-   )
+(defun final-node-f(node color player)
+	(make-node (node-state node) (node-parent node) (node-p1 node) (node-p2 node) (* color (get-h node player)))
 )
 ```
 
